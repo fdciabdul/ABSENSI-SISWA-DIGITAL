@@ -1,0 +1,566 @@
+@layout.app({
+    title: 'Dashboard',
+    description: 'Halaman utama untuk melihat statistik dan kehadiran siswa.',
+    keywords: 'dashboard, statistik, kehadiran, siswa',
+    active: 'dashboard',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') }
+    ]
+})
+
+@slot('head')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+@end
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Welcome Section -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold">Selamat Datang, {{ user.name }}!</h1>
+                    <p class="text-indigo-100 mt-1">{{ new Date().toLocaleDateString('id-ID', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    }) }}</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-3xl font-bold">{{ stats.attendanceRate }}%</div>
+                    <div class="text-indigo-100 text-sm">Tingkat Kehadiran Hari Ini</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-blue-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Siswa</dt>
+                                <dd class="text-2xl font-bold text-gray-900">{{ stats.totalStudents }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-green-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Hadir Hari Ini</dt>
+                                <dd class="text-2xl font-bold text-gray-900">{{ stats.presentToday }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-yellow-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Terlambat</dt>
+                                <dd class="text-2xl font-bold text-gray-900">{{ stats.lateToday }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg border-l-4 border-red-500">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="x-circle" class="w-6 h-6 text-red-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Tidak Hadir</dt>
+                                <dd class="text-2xl font-bold text-gray-900">{{ stats.absentToday }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="school" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Kelas</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.totalClasses }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="user-check" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Guru</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.totalTeachers }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="wifi" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Perangkat Online</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.devicesOnline }}/{{ stats.totalDevices }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
+                                <i data-lucide="calendar-days" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Absensi Bulan Ini</dt>
+                                <dd class="text-lg font-medium text-gray-900">{{ stats.monthlyAttendance }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Weekly Attendance Chart -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Tren Kehadiran Mingguan</h3>
+                </div>
+                <div class="p-6">
+                    <div id="weeklyChart" style="height: 300px;"></div>
+                </div>
+            </div>
+
+            <!-- Hourly Distribution Chart -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Distribusi Jam Kedatangan</h3>
+                </div>
+                <div class="p-6">
+                    <div id="hourlyChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Recent Attendance -->
+            <div class="lg:col-span-2 bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-900">Absensi Terbaru</h3>
+                        <a href="{{ route('reports.attendance') }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                            Lihat Semua
+                        </a>
+                    </div>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Siswa</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @each(attendance in recentAttendance)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">{{ attendance.student.name }}</div>
+                                            <div class="text-sm text-gray-500">{{ attendance.student.studentId }}</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ attendance.student.class.name }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if(attendance.status === 'present')
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>
+                                        @elseif(attendance.status === 'late')
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Terlambat</span>
+                                        @elseif(attendance.status === 'absent')
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak Hadir</span>
+                                        @else
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Izin</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ attendance.checkInTime ? attendance.checkInTime.toFormat('HH:mm') : '-' }}
+                                    </td>
+                                </tr>
+                                @else
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+                                        <i data-lucide="clock" class="w-8 h-8 mx-auto mb-2 text-gray-300"></i>
+                                        <p>Belum ada data absensi hari ini</p>
+                                    </td>
+                                </tr>
+                                @endeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="space-y-6">
+                <!-- Top Classes -->
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Kelas Terbaik</h3>
+                        <p class="text-sm text-gray-500">Berdasarkan tingkat kehadiran</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            @each(classItem in topClasses.slice(0, 5))
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                                        <i data-lucide="school" class="w-4 h-4 text-indigo-600"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ classItem.name }}</div>
+                                        <div class="text-xs text-gray-500">{{ classItem.totalStudents }} siswa</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-bold text-green-600">{{ classItem.attendanceRate }}%</div>
+                                </div>
+                            </div>
+                            @else
+                            <div class="text-center py-4">
+                                <i data-lucide="school" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
+                                <p class="text-sm text-gray-500">Belum ada data kelas</p>
+                            </div>
+                            @endeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Status -->
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Status Perangkat</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-3">
+                            @each(device in deviceActivity.slice(0, 5))
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <div class="w-2 h-2 rounded-full mr-3 {{ device.isOnline ? 'bg-green-500' : 'bg-red-500' }}"></div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ device.deviceName }}</div>
+                                        <div class="text-xs text-gray-500">{{ device.location }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ device.attendances.length }} absensi
+                                </div>
+                            </div>
+                            @else
+                            <div class="text-center py-4">
+                                <i data-lucide="smartphone" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
+                                <p class="text-sm text-gray-500">Belum ada perangkat</p>
+                            </div>
+                            @endeach
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <a href="{{ route('devices.index') }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                Kelola Perangkat →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Aksi Cepat</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-3">
+                            <a href="{{ route('reports.attendance') }}" class="w-full bg-indigo-50 text-indigo-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-indigo-100 transition block">
+                                <i data-lucide="clipboard-list" class="w-4 h-4 inline mr-2"></i>
+                                Laporan Absensi
+                            </a>
+                            <a href="{{ route('students.index') }}" class="w-full bg-green-50 text-green-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-green-100 transition block">
+                                <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>
+                                Data Siswa
+                            </a>
+                            <a href="{{ route('classes.index') }}" class="w-full bg-purple-50 text-purple-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-purple-100 transition block">
+                                <i data-lucide="school" class="w-4 h-4 inline mr-2"></i>
+                                Manajemen Kelas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Late and Absent Students -->
+        @if(lateStudentsToday.length > 0 || absentStudentsToday.length > 0)
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @if(lateStudentsToday.length > 0)
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900 text-yellow-600">
+                        <i data-lucide="clock" class="w-5 h-5 inline mr-2"></i>
+                        Siswa Terlambat Hari Ini
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-3">
+                        @each(attendance in lateStudentsToday)
+                        <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">{{ attendance.student.name }}</div>
+                                <div class="text-xs text-gray-500">{{ attendance.student.class.name }}</div>
+                            </div>
+                            <div class="text-xs text-yellow-600 font-medium">
+                                {{ attendance.checkInTime.toFormat('HH:mm') }}
+                           </div>
+                       </div>
+                       @endeach
+                   </div>
+               </div>
+           </div>
+           @endif
+
+           @if(absentStudentsToday.length > 0)
+           <div class="bg-white shadow rounded-lg">
+               <div class="px-6 py-4 border-b border-gray-200">
+                   <h3 class="text-lg font-medium text-gray-900 text-red-600">
+                       <i data-lucide="x-circle" class="w-5 h-5 inline mr-2"></i>
+                       Siswa Tidak Hadir Hari Ini
+                   </h3>
+               </div>
+               <div class="p-6">
+                   <div class="space-y-3">
+                       @each(attendance in absentStudentsToday)
+                       <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                           <div>
+                               <div class="text-sm font-medium text-gray-900">{{ attendance.student.name }}</div>
+                               <div class="text-xs text-gray-500">{{ attendance.student.class.name }}</div>
+                           </div>
+                           <div class="text-xs text-red-600 font-medium">
+                               Tidak Hadir
+                           </div>
+                       </div>
+                       @endeach
+                   </div>
+               </div>
+           </div>
+           @endif
+       </div>
+       @endif
+   </div>
+
+   <script>
+       document.addEventListener('DOMContentLoaded', function() {
+           // Weekly Attendance Chart
+           const weeklyData = {{{ JSON.stringify(weeklyAttendance) }}};
+           
+           const weeklyOptions = {
+               series: [{
+                   name: 'Hadir',
+                   data: weeklyData.map(d => d.present)
+               }, {
+                   name: 'Terlambat', 
+                   data: weeklyData.map(d => d.late)
+               }, {
+                   name: 'Tidak Hadir',
+                   data: weeklyData.map(d => d.absent)
+               }, {
+                   name: 'Izin',
+                   data: weeklyData.map(d => d.excused)
+               }],
+               chart: {
+                   type: 'bar',
+                   height: 300,
+                   stacked: true,
+                   toolbar: {
+                       show: false
+                   }
+               },
+               plotOptions: {
+                   bar: {
+                       horizontal: false,
+                       columnWidth: '60%'
+                   }
+               },
+               dataLabels: {
+                   enabled: false
+               },
+               stroke: {
+                   show: true,
+                   width: 2,
+                   colors: ['transparent']
+               },
+               xaxis: {
+                   categories: weeklyData.map(d => d.day),
+                   labels: {
+                       style: {
+                           fontSize: '12px'
+                       }
+                   }
+               },
+               yaxis: {
+                   title: {
+                       text: 'Jumlah Siswa'
+                   }
+               },
+               fill: {
+                   opacity: 1
+               },
+               colors: ['#10B981', '#F59E0B', '#EF4444', '#6366F1'],
+               legend: {
+                   position: 'top',
+                   horizontalAlign: 'left'
+               },
+               grid: {
+                   strokeDashArray: 3
+               },
+               tooltip: {
+                   y: {
+                       formatter: function (val) {
+                           return val + " siswa"
+                       }
+                   }
+               }
+           };
+
+           const weeklyChart = new ApexCharts(document.querySelector("#weeklyChart"), weeklyOptions);
+           weeklyChart.render();
+
+           // Hourly Distribution Chart
+           const hourlyData = {{{ JSON.stringify(hourlyDistribution) }}};
+           
+           const hourlyOptions = {
+               series: [{
+                   name: 'Jumlah Kedatangan',
+                   data: hourlyData.map(d => d.count)
+               }],
+               chart: {
+                   type: 'area',
+                   height: 300,
+                   toolbar: {
+                       show: false
+                   }
+               },
+               dataLabels: {
+                   enabled: false
+               },
+               stroke: {
+                   curve: 'smooth',
+                   width: 2
+               },
+               fill: {
+                   type: 'gradient',
+                   gradient: {
+                       shadeIntensity: 1,
+                       opacityFrom: 0.7,
+                       opacityTo: 0.3,
+                       stops: [0, 90, 100]
+                   }
+               },
+               xaxis: {
+                   categories: hourlyData.map(d => d.hour),
+                   labels: {
+                       style: {
+                           fontSize: '12px'
+                       }
+                   }
+               },
+               yaxis: {
+                   title: {
+                       text: 'Jumlah Siswa'
+                   }
+               },
+               colors: ['#8B5CF6'],
+               grid: {
+                   strokeDashArray: 3
+               },
+               tooltip: {
+                   y: {
+                       formatter: function (val) {
+                           return val + " siswa datang"
+                       }
+                   }
+               }
+           };
+
+           const hourlyChart = new ApexCharts(document.querySelector("#hourlyChart"), hourlyOptions);
+           hourlyChart.render();
+       });
+   </script>
+@end
+
+@end

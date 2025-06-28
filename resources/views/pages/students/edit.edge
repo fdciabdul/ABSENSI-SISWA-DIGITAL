@@ -1,0 +1,299 @@
+@layout.app({
+    title: 'Edit Siswa',
+    description: 'Halaman untuk mengedit data siswa.',
+    keywords: 'edit, siswa, data, sekolah',
+    active: 'students',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Data Siswa', url: route('students.index') },
+        { name: 'Edit Siswa', url: route('students.edit', { id: student.id }) }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Edit Data Siswa</h2>
+                <p class="mt-1 text-sm text-gray-600">Perbarui informasi data siswa</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ route('students.show', { id: student.id }) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
+                    <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                    Lihat Detail
+                </a>
+                <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white rounded-lg shadow">
+            <form action="{{ route('students.update', { id: student.id }) }}" method="POST" class="p-6 space-y-6">
+                {{ csrfField() }}
+                <input type="hidden" name="_method" value="PUT">
+
+                <!-- Current Info Display -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <i data-lucide="info" class="w-5 h-5 text-blue-400 mr-3"></i>
+                        <div>
+                            <h3 class="text-sm font-medium text-blue-800">Data Saat Ini</h3>
+                            <p class="text-sm text-blue-700 mt-1">
+                                <strong>{{ student.name }}</strong> - NIS: {{ student.studentId }} - {{ student.class.name }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- NIS -->
+                    <div>
+                        <label for="studentId" class="block text-sm font-medium text-gray-700">
+                            NIS (Nomor Induk Siswa) <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="studentId" 
+                            id="studentId"
+                            value="{{ student.studentId }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Contoh: 2024001"
+                        >
+                        <p class="mt-1 text-xs text-gray-500">NIS harus unik di seluruh sistem</p>
+                    </div>
+
+                    <!-- Nama Lengkap -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">
+                            Nama Lengkap <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="name" 
+                            id="name"
+                            value="{{ student.name }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Nama lengkap siswa"
+                        >
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">
+                            Email <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            id="email"
+                            value="{{ student.email }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="email@contoh.com"
+                        >
+                        <p class="mt-1 text-xs text-gray-500">Email digunakan untuk notifikasi sistem</p>
+                    </div>
+
+                    <!-- Nomor Telepon -->
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700">
+                            Nomor Telepon
+                        </label>
+                        <input 
+                            type="text" 
+                            name="phone" 
+                            id="phone"
+                            value="{{ student.phone }}"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="08xxxxxxxxxx"
+                        >
+                    </div>
+
+                    <!-- Kelas -->
+                    <div>
+                        <label for="classId" class="block text-sm font-medium text-gray-700">
+                            Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="classId" 
+                            id="classId" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Kelas</option>
+                            @each(classItem in classes)
+                                <option value="{{ classItem.id }}" {{ student.classId == classItem.id ? 'selected' : '' }}>
+                                    {{ classItem.name }} - {{ classItem.gradeLevel }}
+                                </option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Tingkat -->
+                    <div>
+                        <label for="gradeLevel" class="block text-sm font-medium text-gray-700">
+                            Tingkat <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="gradeLevel" 
+                            id="gradeLevel" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Tingkat</option>
+                            <option value="10" {{ student.gradeLevel == '10' ? 'selected' : '' }}>Kelas 10</option>
+                            <option value="11" {{ student.gradeLevel == '11' ? 'selected' : '' }}>Kelas 11</option>
+                            <option value="12" {{ student.gradeLevel == '12' ? 'selected' : '' }}>Kelas 12</option>
+                        </select>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="md:col-span-2">
+                        <label for="isActive" class="block text-sm font-medium text-gray-700">
+                            Status Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-2 space-y-2">
+                            <div class="flex items-center">
+                                <input 
+                                    id="active" 
+                                    name="isActive" 
+                                    type="radio" 
+                                    value="true"
+                                    {{ student.isActive ? 'checked' : '' }}
+                                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                                >
+                                <label for="active" class="ml-3 block text-sm font-medium text-gray-700">
+                                    <span class="text-green-600">Aktif</span> - Siswa dapat menggunakan sistem absensi
+                                </label>
+                            </div>
+                            <div class="flex items-center">
+                                <input 
+                                    id="inactive" 
+                                    name="isActive" 
+                                    type="radio" 
+                                    value="false"
+                                    {{ !student.isActive ? 'checked' : '' }}
+                                    class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                                >
+                                <label for="inactive" class="ml-3 block text-sm font-medium text-gray-700">
+                                    <span class="text-red-600">Tidak Aktif</span> - Siswa tidak dapat menggunakan sistem absensi
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                    <div class="flex space-x-3">
+                        <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 transition">
+                            Batal
+                        </a>
+                        <a href="{{ route('students.show', { id: student.id }) }}" class="inline-flex items-center px-4 py-2 bg-blue-100 border border-blue-300 rounded-md font-semibold text-xs text-blue-700 uppercase tracking-widest hover:bg-blue-200 transition">
+                            Lihat Detail
+                        </a>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="resetForm()" class="inline-flex items-center px-4 py-2 bg-yellow-100 border border-yellow-300 rounded-md font-semibold text-xs text-yellow-700 uppercase tracking-widest hover:bg-yellow-200 transition">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i>
+                            Reset
+                        </button>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                            <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Change History (Optional) -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h4 class="text-lg font-medium text-gray-900 mb-4">Riwayat Perubahan</h4>
+            <div class="text-center py-8">
+                <i data-lucide="history" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <p class="text-gray-500">Fitur riwayat perubahan akan segera tersedia</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-fill grade level based on class selection
+        document.getElementById('classId').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const gradeLevel = selectedOption.text.split(' - ')[1];
+                if (gradeLevel) {
+                    document.getElementById('gradeLevel').value = gradeLevel;
+                }
+            }
+        });
+
+        // Format phone number
+        document.getElementById('phone').addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.startsWith('08')) {
+                this.value = value;
+            } else if (value.startsWith('8')) {
+                this.value = '0' + value;
+            }
+        });
+
+        // Reset form to original values
+        function resetForm() {
+            customAlert.confirm(
+                'Apakah Anda yakin ingin mengembalikan semua data ke nilai awal?',
+                function() {
+                    // Reset to original values
+                    document.getElementById('studentId').value = '{{ student.studentId }}';
+                    document.getElementById('name').value = '{{ student.name }}';
+                    document.getElementById('email').value = '{{ student.email }}';
+                    document.getElementById('phone').value = '{{ student.phone }}';
+                    document.getElementById('classId').value = '{{ student.classId }}';
+                    document.getElementById('gradeLevel').value = '{{ student.gradeLevel }}';
+                    
+                    // Reset radio buttons
+                    @if(student.isActive)
+                        document.getElementById('active').checked = true;
+                    @else
+                        document.getElementById('inactive').checked = true;
+                    @endif
+                    
+                    customAlert.success('Form berhasil direset ke nilai awal');
+                },
+                'Konfirmasi Reset',
+                'Ya, Reset',
+                'Batal'
+            );
+        }
+
+        // Form validation before submit
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const requiredFields = ['studentId', 'name', 'email', 'classId', 'gradeLevel'];
+            let hasError = false;
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    hasError = true;
+                    input.classList.add('border-red-500');
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+            
+            if (hasError) {
+                e.preventDefault();
+                customAlert.error('Mohon lengkapi semua field yang wajib diisi');
+            }
+        });
+    </script>
+@end
+
+@end

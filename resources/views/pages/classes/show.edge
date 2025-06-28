@@ -1,0 +1,183 @@
+@layout.app({
+    title: `Detail Kelas ${classData.name}`,
+    description: `Halaman detail kelas ${classData.name}.`,
+    keywords: 'kelas, detail, manajemen, sekolah',
+    active: 'classes',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Kelas', url: route('classes.index') },
+        { name: classData.name, url: route('classes.show', { id: classData.id }) }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Detail Kelas {{ classData.name }}</h2>
+                <p class="mt-1 text-sm text-gray-600">Informasi lengkap tentang kelas {{ classData.name }}</p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                <a href="{{ route('classes.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+                <a href="{{ route('classes.edit', { id: classData.id }) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 transition">
+                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                    Edit Kelas
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="school" class="w-10 h-10 text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">{{ classData.name }}</h3>
+                        <p class="text-gray-500">Tingkat {{ classData.gradeLevel }}</p>
+                        @if(classData.isActive)
+                            <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800 mt-2">
+                                Aktif
+                            </span>
+                        @else
+                            <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800 mt-2">
+                                Tidak Aktif
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <i data-lucide="user-check" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Wali Kelas</p>
+                                <p class="font-medium">{{ classData.teacher.name }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <i data-lucide="calendar" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Tahun Akademik</p>
+                                <p class="font-medium">{{ classData.academicYear }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <i data-lucide="users" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Kapasitas</p>
+                                <p class="font-medium">{{ classData.students.length }}/{{ classData.maxStudents }} siswa</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Kapasitas Terisi</span>
+                                <span class="text-gray-900">{{ Math.round((classData.students.length / classData.maxStudents) * 100) }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-indigo-600 h-3 rounded-full transition-all duration-500" style="width: {{ Math.round((classData.students.length / classData.maxStudents) * 100) }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i data-lucide="users" class="w-5 h-5 mr-2"></i>
+                            Daftar Siswa ({{ classData.students.length }})
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        @if(classData.students.length > 0)
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @each(student in classData.students)
+                                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-900">{{ student.name }}</p>
+                                        <p class="text-sm text-gray-500">{{ student.studentId }}</p>
+                                    </div>
+                                </div>
+                                @endeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i data-lucide="user-x" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Belum ada siswa di kelas ini</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i data-lucide="calendar-days" class="w-5 h-5 mr-2"></i>
+                            Jadwal Pelajaran ({{ classData.schedules.length }})
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        @if(classData.schedules.length > 0)
+                            <div class="space-y-4">
+                                @each(schedule in classData.schedules)
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                            <i data-lucide="book-open" class="w-6 h-6 text-green-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">{{ schedule.subject }}</p>
+                                            <div class="flex items-center text-sm text-gray-500 mt-1">
+                                                <span>{{ schedule.teacher.name }}</span>
+                                                <span class="mx-2">•</span>
+                                                <span>Ruang {{ schedule.room }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-medium text-gray-900">
+                                            @if(schedule.dayOfWeek === 1)
+                                                Senin
+                                            @elseif(schedule.dayOfWeek === 2)
+                                                Selasa
+                                            @elseif(schedule.dayOfWeek === 3)
+                                                Rabu
+                                            @elseif(schedule.dayOfWeek === 4)
+                                                Kamis
+                                            @elseif(schedule.dayOfWeek === 5)
+                                                Jumat
+                                            @elseif(schedule.dayOfWeek === 6)
+                                                Sabtu
+                                            @else
+                                                Minggu
+                                            @endif
+                                        </p>
+                                        <p class="text-sm text-gray-500">{{ schedule.startTime }} - {{ schedule.endTime }}</p>
+                                    </div>
+                                </div>
+                                @endeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i data-lucide="calendar-x" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Belum ada jadwal untuk kelas ini</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@end
+
+@end

@@ -1,0 +1,207 @@
+@layout.app({
+    title: 'Manajemen Kelas',
+    description: 'Halaman untuk mengelola data kelas.',
+    keywords: 'kelas, manajemen, sekolah',
+    active: 'classes',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Kelas', url: route('classes.index') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Manajemen Kelas</h2>
+                <p class="mt-1 text-sm text-gray-600">Kelola data kelas di sekolah</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('classes.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Kelas
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700">Cari Kelas</label>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        id="search"
+                        value="{{ search }}"
+                        placeholder="Nama kelas atau tahun akademik"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label for="gradeLevel" class="block text-sm font-medium text-gray-700">Tingkat</label>
+                    <select name="gradeLevel" id="gradeLevel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Tingkat</option>
+                        <option value="10" {{ gradeLevel === '10' ? 'selected' : '' }}>Kelas 10</option>
+                        <option value="11" {{ gradeLevel === '11' ? 'selected' : '' }}>Kelas 11</option>
+                        <option value="12" {{ gradeLevel === '12' ? 'selected' : '' }}>Kelas 12</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Status</option>
+                        <option value="active" {{ status === 'active' ? 'selected' : '' }}>Aktif</option>
+                        <option value="inactive" {{ status === 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Classes Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @each(classItem in classes.all())
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="p-6">
+                    <!-- Class Header -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="school" class="w-6 h-6 text-indigo-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ classItem.name }}</h3>
+                                <p class="text-sm text-gray-500">Tingkat {{ classItem.gradeLevel }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            @if(classItem.isActive)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Tidak Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Class Info -->
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="user-check" class="w-4 h-4 mr-2"></i>
+                            <span>Wali Kelas: {{ classItem.teacher.name }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                            <span>Siswa: {{ classItem.students.length }}/{{ classItem.maxStudents }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                            <span>{{ classItem.academicYear }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Kapasitas Siswa</span>
+                            <span class="text-gray-900">{{ Math.round((classItem.students.length / classItem.maxStudents) * 100) }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ Math.round((classItem.students.length / classItem.maxStudents) * 100) }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex space-x-2">
+                        <a href="{{ route('classes.show', { id: classItem.id }) }}" class="flex-1 bg-blue-50 text-blue-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-blue-100 transition">
+                            <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                            Detail
+                        </a>
+                        <a href="{{ route('classes.edit', { id: classItem.id }) }}" class="flex-1 bg-yellow-50 text-yellow-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-yellow-100 transition">
+                            <i data-lucide="edit" class="w-4 h-4 inline mr-1"></i>
+                            Edit
+                        </a>
+                        <button onclick="confirmDelete({{ classItem.id }}, '{{ classItem.name }}')" class="flex-1 bg-red-50 text-red-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-red-100 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @else
+            <div class="col-span-full text-center py-12">
+                <i data-lucide="school" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Kelas</h3>
+                <p class="text-gray-500 mb-4">Belum ada kelas yang terdaftar di sistem</p>
+                <a href="{{ route('classes.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Kelas Pertama
+                </a>
+            </div>
+            @endeach
+        </div>
+
+        <!-- Pagination -->
+        @if(classes.total > 0)
+            <div class="bg-white px-4 py-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Menampilkan {{ classes.firstPage }} sampai {{ classes.lastPage }} dari {{ classes.total }} kelas
+                    </div>
+                    <div class="flex space-x-2">
+                        @if(classes.hasPages)
+                            @if(classes.currentPage > 1)
+                                <a href="{{ classes.getUrlFor(classes.currentPage - 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Sebelumnya
+                                </a>
+                            @endif
+                            
+                            @if(classes.hasMorePages)
+                                <a href="{{ classes.getUrlFor(classes.currentPage + 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Selanjutnya
+                                </a>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <script>
+        function confirmDelete(classId, className) {
+            customAlert.confirm(
+                `Apakah Anda yakin ingin menghapus kelas <strong>${className}</strong>?<br><br><span class="text-red-600">Pastikan tidak ada siswa di kelas ini!</span>`,
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/classes/${classId}`;
+                    form.innerHTML = `
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                'Konfirmasi Hapus Kelas',
+                'Ya, Hapus',
+                'Batal'
+            );
+        }
+    </script>
+@end
+
+@end

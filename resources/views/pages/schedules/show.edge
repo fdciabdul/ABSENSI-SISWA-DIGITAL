@@ -1,0 +1,191 @@
+@layout.app({
+    title: 'Detail Jadwal',
+    description: 'Halaman detail jadwal pelajaran.',
+    keywords: 'detail, jadwal, pelajaran',
+    active: 'schedules',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Jadwal', url: route('schedules.index') },
+        { name: 'Detail Jadwal', url: route('schedules.show', { id: schedule.id }) }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Detail Jadwal</h2>
+                <p class="mt-1 text-sm text-gray-600">Informasi lengkap jadwal pelajaran</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ route('schedules.edit', { id: schedule.id }) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 transition">
+                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                    Edit Jadwal
+                </a>
+                <a href="{{ route('schedules.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Schedule Info Card -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="book-open" class="w-10 h-10 text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">{{ schedule.subject }}</h3>
+                        <p class="text-gray-500">{{ schedule.class.name }}</p>
+                    </div>
+
+                    <!-- Schedule Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Hari</label>
+                            <p class="mt-1 text-sm text-gray-900">
+                                @if(schedule.dayOfWeek == 1)Senin
+                                @elseif(schedule.dayOfWeek == 2)Selasa
+                                @elseif(schedule.dayOfWeek == 3)Rabu
+                                @elseif(schedule.dayOfWeek == 4)Kamis
+                                @elseif(schedule.dayOfWeek == 5)Jumat
+                                @elseif(schedule.dayOfWeek == 6)Sabtu
+                                @endif
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Waktu</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ schedule.startTime.slice(0, 5) }} - {{ schedule.endTime.slice(0, 5) }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ruang Kelas</label>
+                            <p class="mt-1 text-sm text-gray-900">{{ schedule.room }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Status</label>
+                            <p class="mt-1">
+                                @if(schedule.isActive)
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Tidak Aktif
+                                    </span>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Class Students -->
+                <div class="bg-white rounded-lg shadow mt-6">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h4 class="text-lg font-medium text-gray-900">Daftar Siswa ({{ schedule.class.students.length }} siswa)</h4>
+                    </div>
+                    <div class="p-6">
+                        @if(schedule.class.students.length > 0)
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @each(student in schedule.class.students)
+                                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">{{ student.name }}</p>
+                                        <p class="text-xs text-gray-500">{{ student.studentId }}</p>
+                                    </div>
+                                </div>
+                                @endeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i data-lucide="users" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Belum ada siswa di kelas ini</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Info & Actions -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Teacher Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-lg font-medium text-gray-900 mb-4">Informasi Guru</h4>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="user-check" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                        <h5 class="font-medium text-gray-900">{{ schedule.teacher.name }}</h5>
+                        <p class="text-sm text-gray-500">{{ schedule.teacher.subject }}</p>
+                        <p class="text-sm text-gray-500 mt-1">{{ schedule.teacher.email }}</p>
+                        @if(schedule.teacher.phone)
+                            <p class="text-sm text-gray-500">{{ schedule.teacher.phone }}</p>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Schedule Duration -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-lg font-medium text-gray-900 mb-4">Durasi Pelajaran</h4>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="clock" class="w-8 h-8 text-green-600"></i>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">
+                            {{ Math.floor((new Date('1970-01-01T' + schedule.endTime + 'Z') - new Date('1970-01-01T' + schedule.startTime + 'Z')) / 60000) }} menit
+                        </p>
+                        <p class="text-sm text-gray-500">Durasi pelajaran</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h4 class="text-lg font-medium text-gray-900 mb-4">Aksi Cepat</h4>
+                    <div class="space-y-3">
+                        <a href="{{ route('attendance.create') }}?schedule={{ schedule.id }}" class="w-full bg-blue-50 text-blue-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-blue-100 transition block">
+                            <i data-lucide="clipboard-check" class="w-4 h-4 inline mr-2"></i>
+                            Buat Absensi
+                        </a>
+                        <a href="{{ route('classes.show', { id: schedule.class.id }) }}" class="w-full bg-green-50 text-green-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-green-100 transition block">
+                            <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>
+                            Lihat Kelas
+                        </a>
+                        <button onclick="confirmDelete({{ schedule.id }}, '{{ schedule.subject }}')" class="w-full bg-red-50 text-red-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-red-100 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>
+                            Hapus Jadwal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(scheduleId, subject) {
+            customAlert.confirm(
+                `Apakah Anda yakin ingin menghapus jadwal <strong>${subject}</strong>?<br><br><span class="text-red-600">Data yang dihapus tidak dapat dikembalikan!</span>`,
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/schedules/${scheduleId}`;
+                    form.innerHTML = `
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                'Konfirmasi Hapus Jadwal',
+                'Ya, Hapus',
+                'Batal'
+            );
+        }
+    </script>
+@end
+
+@end

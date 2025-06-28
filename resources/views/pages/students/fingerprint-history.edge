@@ -1,0 +1,157 @@
+@layout.app({
+    title: `Riwayat Fingerprint - ${student.name}`,
+    description: 'Riwayat fingerprint siswa',
+    keywords: 'riwayat, fingerprint, siswa',
+    active: 'students'
+})
+
+@slot('content')
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">Riwayat Fingerprint</h2>
+            <p class="mt-1 text-sm text-gray-600">{{ student.name }} - {{ student.studentId }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="exportData('fingerprint')" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition">
+                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                Export
+            </button>
+            <a href="{{ route('students.show', { id: student.id }) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="fingerprint" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ fingerprintStats.total }}</p>
+                    <p class="text-sm text-gray-500">Total Fingerprint</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ fingerprintStats.active }}</p>
+                    <p class="text-sm text-gray-500">Aktif</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="trending-up" class="w-6 h-6 text-purple-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ fingerprintStats.avgQuality }}%</p>
+                    <p class="text-sm text-gray-500">Rata-rata Kualitas</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="calendar-check" class="w-6 h-6 text-orange-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ attendanceStats.totalFingerprintAttendances }}</p>
+                    <p class="text-sm text-gray-500">Total Absensi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jari</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kualitas</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diperbarui</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @each(fingerprint in fingerprints.data)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                Jari {{ fingerprint.fingerIndex }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-16 bg-gray-200 rounded-full h-2 mr-3">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ fingerprint.quality }}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-900">{{ fingerprint.quality }}%</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(fingerprint.isActive)
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>
+                                @else
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Tidak Aktif</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ fingerprint.createdAt.toFormat('dd/MM/yyyy HH:mm') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ fingerprint.updatedAt.toFormat('dd/MM/yyyy HH:mm') }}
+                            </td>
+                        </tr>
+                    @else
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                <i data-lucide="fingerprint" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                                <p>Tidak ada data fingerprint</p>
+                            </td>
+                        </tr>
+                    @endeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function exportData(type) {
+    try {
+        const response = await fetch(`/students/{{ student.id }}/export?type=${type}`);
+        const data = await response.json();
+        
+        if (data.success && data.fileUrl) {
+            window.open(data.fileUrl, '_blank');
+        } else {
+            customAlert.show({
+                type: 'info',
+                title: 'Export Data',
+                message: data.message,
+                confirmText: 'OK'
+            });
+        }
+    } catch (error) {
+        customAlert.error('Gagal export data');
+    }
+}
+</script>
+@end
+
+@end

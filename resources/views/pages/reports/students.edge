@@ -1,0 +1,173 @@
+@layout.app({
+    title: 'Laporan Siswa',
+    description: 'Laporan data siswa dan statistik kehadiran.',
+    keywords: 'laporan, siswa, data, statistik',
+    active: 'reports',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Laporan', url: route('reports.index') },
+        { name: 'Laporan Siswa', url: route('reports.students') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Laporan Siswa</h2>
+                <p class="mt-1 text-sm text-gray-600">Data siswa dan statistik kehadiran bulan ini</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('reports.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Filter & Export</h3>
+            </div>
+            <div class="p-6">
+                <form method="GET" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="class_id" class="block text-sm font-medium text-gray-700">Kelas</label>
+                            <select name="class_id" id="class_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Semua Kelas</option>
+                                @each(classItem in classes)
+                                    <option value="{{ classItem.id }}" {{ filters.classId == classItem.id ? 'selected' : '' }}>{{ classItem.name }}</option>
+                                @endeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                            <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Semua Status</option>
+                                <option value="active" {{ filters.status === 'active' ? 'selected' : '' }}>Aktif</option>
+                                <option value="inactive" {{ filters.status === 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <form method="POST" action="{{ route('reports.export.students') }}" class="inline">
+                            {{ csrfField() }}
+                            <input type="hidden" name="class_id" value="{{ filters.classId }}">
+                            <input type="hidden" name="status" value="{{ filters.status }}">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                Export Excel
+                            </button>
+                        </form>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Data Siswa</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Siswa</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Absensi Bulan Ini</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @each(student in students.all())
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ student.name }}</div>
+                                        <div class="text-sm text-gray-500">{{ student.studentId }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ student.class.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ student.email }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <span class="text-sm font-medium text-gray-900 mr-2">{{ student.attendances.length }}</span>
+                                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ Math.min((student.attendances.length / 20) * 100, 100) }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(student.isActive)
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Tidak Aktif
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                        @else
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                                <i data-lucide="users-x" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                                <p class="text-lg font-medium">Tidak ada data siswa</p>
+                                <p class="text-sm">Coba ubah filter pencarian Anda</p>
+                            </td>
+                        </tr>
+                        @endeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if(students.total > 0)
+                <div class="bg-white px-6 py-3 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan {{ students.firstPage }} sampai {{ students.lastPage }} dari {{ students.total }} siswa
+                        </div>
+                        <div class="flex space-x-2">
+                            @if(students.hasPages)
+                                @if(students.currentPage > 1)
+                                    <a href="{{ students.getUrlFor(students.currentPage - 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        Sebelumnya
+                                    </a>
+                                @endif
+                                
+                                @if(students.hasMorePages)
+                                    <a href="{{ students.getUrlFor(students.currentPage + 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        Selanjutnya
+                                    </a>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+@end
+
+@end

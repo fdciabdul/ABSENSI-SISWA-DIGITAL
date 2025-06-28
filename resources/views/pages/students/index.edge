@@ -1,0 +1,546 @@
+@layout.app({
+    title: 'Data Siswa',
+    description: 'Halaman untuk mengelola data siswa.',
+    keywords: 'siswa, data, manajemen, sekolah',
+    active: 'students',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Data Siswa', url: route('students.index') }
+    ]
+})
+
+@slot('head')
+    <!-- Custom DataTable CSS for light theme -->
+    <style>
+        /* DataTable Light Theme Overrides */
+        .dataTables_wrapper {
+            font-family: inherit;
+        }
+        
+        .dataTables_length select,
+        .dataTables_filter input {
+            @apply border border-gray-300 rounded-md px-3 py-1 text-sm focus:border-indigo-500 focus:ring-indigo-500;
+        }
+        
+        .dataTables_length label,
+        .dataTables_filter label {
+            @apply text-sm font-medium text-gray-700;
+        }
+        
+        .dataTables_info {
+            @apply text-sm text-gray-600;
+        }
+        
+        .dataTables_paginate .paginate_button {
+            @apply px-3 py-1 text-sm border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 rounded-md mx-1;
+        }
+        
+        .dataTables_paginate .paginate_button.current {
+            @apply bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700;
+        }
+        
+        .dataTables_paginate .paginate_button.disabled {
+            @apply text-gray-400 cursor-not-allowed hover:bg-white hover:border-gray-300;
+        }
+        
+        table.dataTable thead th {
+            @apply bg-gray-50 border-b border-gray-200 font-medium text-gray-700;
+        }
+        
+        table.dataTable tbody tr:hover {
+            @apply bg-gray-50;
+        }
+        
+        .dataTables_empty {
+            @apply text-gray-500 py-8;
+        }
+    </style>
+@end
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Data Siswa</h2>
+                <p class="mt-1 text-sm text-gray-600">Kelola data siswa di sistem absensi</p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                <!-- Import Button -->
+                <div class="relative">
+                    <button id="importDropdown" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
+                        <i data-lucide="upload" class="w-4 h-4 mr-2"></i>
+                        Import Data
+                        <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                    </button>
+                    <div id="importMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <button onclick="importFromExcel()" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-2"></i>
+                            Import dari Excel
+                        </button>
+                        <button onclick="downloadTemplate()" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                            <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                            Download Template
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Export Button -->
+                <div class="relative">
+                    <button id="exportDropdown" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition">
+                        <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                        Export Data
+                        <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                    </button>
+                    <div id="exportMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <button id="exportExcel" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-2"></i>
+                            Export ke Excel
+                        </button>
+                        <button id="exportCSV" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                            <i data-lucide="file-text" class="w-4 h-4 mr-2"></i>
+                            Export ke CSV
+                        </button>
+                        <button id="exportPDF" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 text-left">
+                            <i data-lucide="file" class="w-4 h-4 mr-2"></i>
+                            Export ke PDF
+                        </button>
+                    </div>
+                </div>
+                
+                <a href="{{ route('students.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Siswa
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="classFilter" class="block text-sm font-medium text-gray-700">Filter Kelas</label>
+                    <select id="classFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Kelas</option>
+                        @each(classItem in classes)
+                            <option value="{{ classItem.name }}">{{ classItem.name }}</option>
+                        @endeach
+                    </select>
+                </div>
+                <div>
+                    <label for="gradeFilter" class="block text-sm font-medium text-gray-700">Filter Tingkat</label>
+                    <select id="gradeFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Tingkat</option>
+                        <option value="10">Kelas 10</option>
+                        <option value="11">Kelas 11</option>
+                        <option value="12">Kelas 12</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="statusFilter" class="block text-sm font-medium text-gray-700">Filter Status</label>
+                    <select id="statusFilter" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Status</option>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Tidak Aktif">Tidak Aktif</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-6">
+                <table id="studentsTable" class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Foto</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIS</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telepon</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tingkat</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @each(student in students.all())
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ student.studentId }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ student.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ student.email }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ student.phone || '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ student.class.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ student.gradeLevel }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(student.isActive)
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Aktif
+                                    </span>
+                                @else
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Tidak Aktif
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button onclick="viewStudent({{ student.id }})" class="text-indigo-600 hover:text-indigo-900" title="Lihat Detail">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="editStudent({{ student.id }})" class="text-yellow-600 hover:text-yellow-900" title="Edit">
+                                        <i data-lucide="edit" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="confirmDelete({{ student.id }}, '{{ student.name }}')" class="text-red-600 hover:text-red-900" title="Hapus">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Import Data Siswa</h3>
+            </div>
+            <div class="p-6">
+                <form id="importForm" enctype="multipart/form-data">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="excelFile" class="block text-sm font-medium text-gray-700">Pilih File Excel</label>
+                            <input 
+                                type="file" 
+                                id="excelFile" 
+                                name="file" 
+                                accept=".xlsx,.xls"
+                                required
+                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            >
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-400 mr-2 mt-0.5"></i>
+                                <div class="text-sm text-blue-700">
+                                    <p class="font-medium">Format File Excel:</p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1">
+                                        <li>Gunakan template yang disediakan</li>
+                                        <li>NIS harus unik</li>
+                                        <li>Email harus valid dan unik</li>
+                                        <li>Kelas harus sudah terdaftar</li>
+                                        <li>Format: .xlsx atau .xls</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="closeImportModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Batal
+                </button>
+                <button onclick="processImport()" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                    <i data-lucide="upload" class="w-4 h-4 mr-2 inline"></i>
+                    Import Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <span class="text-gray-700" id="loadingText">Mengekspor data...</span>
+        </div>
+    </div>
+@end
+
+@slot('script')
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        let table;
+
+        $(document).ready(function() {
+            // Initialize DataTable with light theme
+            table = $('#studentsTable').DataTable({
+                responsive: true,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Semua"]],
+                language: {
+                    search: "Cari:",
+                    lengthMenu: "Tampilkan _MENU_ data per halaman",
+                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+                    infoFiltered: "(disaring dari _MAX_ total data)",
+                    paginate: {
+                        first: "Pertama",
+                        last: "Terakhir",
+                        next: "Selanjutnya",
+                        previous: "Sebelumnya"
+                    },
+                    emptyTable: "Tidak ada data siswa",
+                    zeroRecords: "Tidak ditemukan data yang sesuai"
+                },
+                dom: '<"flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 p-4 bg-gray-50 rounded-lg"<"mb-2 sm:mb-0"l><"flex space-x-2"f>>rtip',
+                columnDefs: [
+                    { 
+                        targets: [0, 8], 
+                        orderable: false,
+                        searchable: false
+                    },
+                    {
+                        targets: 7,
+                        render: function(data, type, row) {
+                            if (type === 'export') {
+                                return data.includes('Aktif') ? 'Aktif' : 'Tidak Aktif';
+                            }
+                            return data;
+                        }
+                    }
+                ],
+                order: [[2, 'asc']],
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: 'Excel',
+                        title: 'Data Siswa',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7]
+                        }
+                    },
+                    {
+                        extend: 'csvHtml5',
+                        text: 'CSV', 
+                        title: 'Data Siswa',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7]
+                        }
+                    },
+                    {
+                        extend: 'pdfHtml5',
+                        text: 'PDF',
+                        title: 'Data Siswa',
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: {
+                            columns: [1, 2, 3, 4, 5, 6, 7]
+                        },
+                        customize: function(doc) {
+                            doc.defaultStyle.fontSize = 8;
+                            doc.styles.tableHeader.fontSize = 9;
+                            doc.styles.title.fontSize = 16;
+                        }
+                    }
+                ]
+            });
+
+            // Filter functionality
+            $('#classFilter').on('change', function() {
+                table.column(5).search(this.value).draw();
+            });
+
+            $('#gradeFilter').on('change', function() {
+                table.column(6).search(this.value).draw();
+            });
+
+            $('#statusFilter').on('change', function() {
+                table.column(7).search(this.value).draw();
+            });
+
+            // Dropdown functionality
+            $('#exportDropdown').click(function(e) {
+                e.stopPropagation();
+                $('#exportMenu').toggleClass('hidden');
+                $('#importMenu').addClass('hidden');
+            });
+
+            $('#importDropdown').click(function(e) {
+                e.stopPropagation();
+                $('#importMenu').toggleClass('hidden');
+                $('#exportMenu').addClass('hidden');
+            });
+
+            $(document).click(function() {
+                $('#exportMenu').addClass('hidden');
+                $('#importMenu').addClass('hidden');
+            });
+
+            // Export button handlers
+            $('#exportExcel').click(function(e) {
+                e.preventDefault();
+                showLoading('Mengekspor ke Excel...');
+                setTimeout(() => {
+                    table.button('.buttons-excel').trigger();
+                    hideLoading();
+                }, 500);
+                $('#exportMenu').addClass('hidden');
+            });
+
+            $('#exportCSV').click(function(e) {
+                e.preventDefault();
+                showLoading('Mengekspor ke CSV...');
+                setTimeout(() => {
+                    table.button('.buttons-csv').trigger();
+                    hideLoading();
+                }, 500);
+                $('#exportMenu').addClass('hidden');
+            });
+
+            $('#exportPDF').click(function(e) {
+                e.preventDefault();
+                showLoading('Mengekspor ke PDF...');
+                setTimeout(() => {
+                    table.button('.buttons-pdf').trigger();
+                    hideLoading();
+                }, 1000);
+                $('#exportMenu').addClass('hidden');
+            });
+        });
+
+        // Import functions
+        function importFromExcel() {
+            document.getElementById('importModal').classList.remove('hidden');
+            $('#importMenu').addClass('hidden');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.add('hidden');
+            document.getElementById('importForm').reset();
+        }
+
+        async function processImport() {
+            const fileInput = document.getElementById('excelFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                customAlert.error('Pilih file Excel terlebih dahulu');
+                return;
+            }
+
+            closeImportModal();
+            showLoading('Mengimpor data dari Excel...');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/students/import', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.success) {
+                    customAlert.success(`Berhasil mengimpor ${data.imported} data siswa`);
+                    location.reload();
+                } else {
+                    customAlert.error(data.message || 'Gagal mengimpor data');
+                }
+            } catch (error) {
+                hideLoading();
+                customAlert.error('Terjadi kesalahan saat mengimpor data');
+            }
+        }
+
+       function downloadTemplate() {
+    showLoading('Mengunduh template...');
+    
+    // Use server-generated template instead
+    window.location.href = '/students/template';
+    
+    setTimeout(() => {
+        hideLoading();
+    }, 1000);
+    
+    $('#importMenu').addClass('hidden');
+}
+
+        function showLoading(text = 'Memproses...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function viewStudent(id) {
+            window.location.href = `/students/${id}`;
+        }
+
+        function editStudent(id) {
+            window.location.href = `/students/${id}/edit`;
+        }
+
+        function confirmDelete(studentId, studentName) {
+            customAlert.confirm(
+                `Apakah Anda yakin ingin menghapus data siswa <strong>${studentName}</strong>?<br><br><span class="text-red-600">Data yang sudah dihapus tidak dapat dikembalikan!</span>`,
+                function() {
+                    showLoading('Menghapus data...');
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/students/${studentId}`;
+                    form.innerHTML = `
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                'Konfirmasi Hapus Data',
+                'Ya, Hapus Data',
+                'Batal'
+            );
+        }
+
+        // Refresh icons after DataTable draws
+        $('#studentsTable').on('draw.dt', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+@end
+
+@end

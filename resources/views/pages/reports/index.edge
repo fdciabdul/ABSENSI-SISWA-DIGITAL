@@ -1,0 +1,411 @@
+@layout.app({
+    title: 'Laporan & Analitik',
+    description: 'Dashboard laporan dan analitik sistem absensi.',
+    keywords: 'laporan, analitik, dashboard, absensi',
+    active: 'reports',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Laporan & Analitik', url: route('reports.index') }
+    ]
+})
+
+@slot('head')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+@end
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Laporan & Analitik</h2>
+                <p class="mt-1 text-sm text-gray-600">Dashboard laporan komprehensif sistem absensi</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <div class="flex space-x-2">
+                    <a href="{{ route('reports.attendance') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                        <i data-lucide="clipboard-list" class="w-4 h-4 mr-2"></i>
+                        Laporan Detail
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Siswa</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.totalStudents }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="school" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Kelas</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.totalClasses }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="smartphone" class="w-6 h-6 text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Perangkat Online</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.onlineDevices }}/{{ stats.totalDevices }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="percent" class="w-6 h-6 text-orange-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Tingkat Kehadiran</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.attendanceRate }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-blue-100">Absensi Hari Ini</p>
+                        <p class="text-3xl font-bold">{{ stats.todayAttendance }}</p>
+                    </div>
+                    <i data-lucide="calendar-days" class="w-10 h-10 text-blue-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100">Absensi Minggu Ini</p>
+                        <p class="text-3xl font-bold">{{ stats.weeklyAttendance }}</p>
+                    </div>
+                    <i data-lucide="calendar" class="w-10 h-10 text-green-200"></i>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-100">Absensi Bulan Ini</p>
+                        <p class="text-3xl font-bold">{{ stats.monthlyAttendance }}</p>
+                    </div>
+                    <i data-lucide="calendar-range" class="w-10 h-10 text-purple-200"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Attendance Trends Chart -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-medium text-gray-900">Tren Absensi 7 Hari Terakhir</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="loadAttendanceChart(7)" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">7 Hari</button>
+                            <button onclick="loadAttendanceChart(30)" class="text-sm text-gray-500 hover:text-indigo-600 font-medium">30 Hari</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div id="attendanceChart" style="height: 300px;"></div>
+                </div>
+            </div>
+
+            <!-- Class Performance Chart -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Performa Kehadiran Per Kelas</h3>
+                </div>
+                <div class="p-6">
+                    <div id="classPerformanceChart" style="height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Trends Chart -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Tren Bulanan Absensi</h3>
+            </div>
+            <div class="p-6">
+                <div id="monthlyTrendsChart" style="height: 400px;"></div>
+            </div>
+        </div>
+
+        <!-- Quick Access Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{{ route('reports.attendance') }}" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="clipboard-check" class="w-5 h-5 text-indigo-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-sm font-medium text-gray-900">Laporan Absensi</h4>
+                        <p class="text-sm text-gray-500">Detail kehadiran siswa</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('reports.students') }}" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="users" class="w-5 h-5 text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-sm font-medium text-gray-900">Laporan Siswa</h4>
+                        <p class="text-sm text-gray-500">Data lengkap siswa</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('reports.classes') }}" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="school" class="w-5 h-5 text-purple-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-sm font-medium text-gray-900">Laporan Kelas</h4>
+                        <p class="text-sm text-gray-500">Statistik per kelas</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('reports.devices') }}" class="block bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <i data-lucide="smartphone" class="w-5 h-5 text-orange-600"></i>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        <h4 class="text-sm font-medium text-gray-900">Laporan Perangkat</h4>
+                        <p class="text-sm text-gray-500">Status perangkat</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        let attendanceChart, classPerformanceChart, monthlyTrendsChart;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAttendanceChart(7);
+            loadClassPerformanceChart();
+            loadMonthlyTrendsChart();
+        });
+
+        async function loadAttendanceChart(days) {
+            try {
+                const response = await fetch(`{{ route('reports.api.attendance-chart') }}?days=${days}`);
+                const data = await response.json();
+
+                const options = {
+                    series: data.series,
+                    chart: {
+                        type: 'area',
+                        height: 300,
+                        stacked: true,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 2
+                    },
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            opacityFrom: 0.7,
+                            opacityTo: 0.3
+                        }
+                    },
+                    colors: ['#10B981', '#F59E0B', '#EF4444', '#6366F1'],
+                    xaxis: {
+                        categories: data.categories
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Jumlah Siswa'
+                        }
+                    },
+                    legend: {
+                        position: 'top'
+                    },
+                    grid: {
+                        strokeDashArray: 3
+                    }
+                };
+
+                if (attendanceChart) {
+                    attendanceChart.destroy();
+                }
+                attendanceChart = new ApexCharts(document.querySelector("#attendanceChart"), options);
+                attendanceChart.render();
+            } catch (error) {
+                console.error('Error loading attendance chart:', error);
+            }
+        }
+
+        async function loadClassPerformanceChart() {
+            try {
+                const response = await fetch('{{ route('reports.api.class-performance') }}');
+                const data = await response.json();
+
+                const options = {
+                    series: [{
+                        name: 'Rata-rata Kehadiran',
+                        data: data.map(item => item.averageAttendance)
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: 300,
+                        toolbar: {
+                            show: false
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            borderRadius: 4,
+                            horizontal: false,
+                            columnWidth: '60%'
+                        }
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        colors: ['transparent']
+                    },
+                    xaxis: {
+                        categories: data.map(item => item.className),
+                        labels: {
+                            rotate: -45
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Jumlah Kehadiran'
+                        }
+                    },
+                    fill: {
+                        opacity: 1,
+                        colors: ['#8B5CF6']
+                    },
+                    tooltip: {
+                        y: {
+                            formatter: function (val, opts) {
+                                const classData = data[opts.dataPointIndex];
+                                return `${val} hari (${classData.attendanceRate}% tingkat kehadiran)`;
+                            }
+                        }
+                    },
+                    grid: {
+                        strokeDashArray: 3
+                    }
+                };
+
+                classPerformanceChart = new ApexCharts(document.querySelector("#classPerformanceChart"), options);
+                classPerformanceChart.render();
+            } catch (error) {
+                console.error('Error loading class performance chart:', error);
+            }
+        }
+
+        async function loadMonthlyTrendsChart() {
+            try {
+                const response = await fetch('{{ route('reports.api.monthly-trends') }}');
+                const data = await response.json();
+
+                const options = {
+                    series: [{
+                        name: 'Total Absensi',
+                        data: data.map(item => item.total)
+                    }],
+                    chart: {
+                        type: 'line',
+                        height: 400,
+                        toolbar: {
+                            show: true
+                        }
+                    },
+                    stroke: {
+                        curve: 'smooth',
+                        width: 3
+                    },
+                    xaxis: {
+                        categories: data.map(item => item.month)
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Jumlah Absensi'
+                        }
+                    },
+                    markers: {
+                        size: 6,
+                        colors: ['#F97316'],
+                        strokeColors: '#fff',
+                        strokeWidth: 2
+                    },
+                    colors: ['#F97316'],
+                    grid: {
+                        strokeDashArray: 3
+                    },
+                    tooltip: {
+                        theme: 'dark'
+                    }
+                };
+
+                monthlyTrendsChart = new ApexCharts(document.querySelector("#monthlyTrendsChart"), options);
+                monthlyTrendsChart.render();
+            } catch (error) {
+                console.error('Error loading monthly trends chart:', error);
+            }
+        }
+    </script>
+@end
+
+@end

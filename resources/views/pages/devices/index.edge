@@ -1,0 +1,229 @@
+@layout.app({
+    title: 'Manajemen Perangkat',
+    description: 'Halaman untuk mengelola perangkat fingerprint.',
+    keywords: 'perangkat, fingerprint, manajemen, sekolah',
+    active: 'devices',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Perangkat', url: route('devices.index') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Manajemen Perangkat</h2>
+                <p class="mt-1 text-sm text-gray-600">Kelola perangkat fingerprint di sekolah</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('devices.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Perangkat
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700">Cari Perangkat</label>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        id="search"
+                        value="{{ search }}"
+                        placeholder="Nama, serial, atau IP"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700">Lokasi</label>
+                    <input 
+                        type="text" 
+                        name="location" 
+                        id="location"
+                        value="{{ location }}"
+                        placeholder="Contoh: Gerbang Utama"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Status</option>
+                        <option value="online" {{ status === 'online' ? 'selected' : '' }}>Online</option>
+                        <option value="offline" {{ status === 'offline' ? 'selected' : '' }}>Offline</option>
+                        <option value="active" {{ status === 'active' ? 'selected' : '' }}>Aktif</option>
+                        <option value="inactive" {{ status === 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @each(device in devices.all())
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="smartphone" class="w-6 h-6 text-purple-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ device.deviceName }}</h3>
+                                <p class="text-sm text-gray-500">{{ device.serialNumber }}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col space-y-1">
+                            @if(device.isOnline)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Online
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Offline
+                                </span>
+                            @endif
+                            @if(device.isActive)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    Tidak Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                            <span>{{ device.location }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="network" class="w-4 h-4 mr-2"></i>
+                            <span>{{ device.ipAddress }}:{{ device.port }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="monitor" class="w-4 h-4 mr-2"></i>
+                            <span>{{ device.deviceModel }}</span>
+                        </div>
+                        @if(device.lastSyncAt)
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="clock" class="w-4 h-4 mr-2"></i>
+                            <span>Sync: {{ device.lastSyncAt.toFormat('dd/MM HH:mm') }}</span>
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="flex space-x-2 mb-4">
+                        <a href="{{ route('devices.show', { id: device.id }) }}" class="flex-1 bg-blue-50 text-blue-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-blue-100 transition">
+                            <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                            Detail
+                        </a>
+                        <a href="{{ route('devices.edit', { id: device.id }) }}" class="flex-1 bg-yellow-50 text-yellow-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-yellow-100 transition">
+                            <i data-lucide="edit" class="w-4 h-4 inline mr-1"></i>
+                            Edit
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        @if(device.isOnline)
+                            <form method="POST" action="{{ route('devices.disconnect', { id: device.id }) }}" class="inline">
+                                {{ csrfField() }}
+                                <button type="submit" class="w-full bg-red-50 text-red-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-red-100 transition">
+                                    <i data-lucide="wifi-off" class="w-4 h-4 inline mr-1"></i>
+                                    Putus
+                                </button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('devices.connect', { id: device.id }) }}" class="inline">
+                                {{ csrfField() }}
+                                <button type="submit" class="w-full bg-green-50 text-green-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-green-100 transition">
+                                    <i data-lucide="wifi" class="w-4 h-4 inline mr-1"></i>
+                                    Hubungkan
+                                </button>
+                            </form>
+                        @endif
+                        
+                        <button onclick="confirmDelete({{ device.id }}, '{{ device.deviceName }}')" class="bg-red-50 text-red-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-red-100 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @else
+            <div class="col-span-full text-center py-12">
+                <i data-lucide="smartphone" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Perangkat</h3>
+                <p class="text-gray-500 mb-4">Belum ada perangkat fingerprint yang terdaftar</p>
+                <a href="{{ route('devices.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Perangkat Pertama
+                </a>
+            </div>
+            @endeach
+        </div>
+
+        @if(devices.total > 0)
+            <div class="bg-white px-4 py-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Menampilkan {{ devices.firstPage }} sampai {{ devices.lastPage }} dari {{ devices.total }} perangkat
+                    </div>
+                    <div class="flex space-x-2">
+                        @if(devices.hasPages)
+                            @if(devices.currentPage > 1)
+                                <a href="{{ devices.getUrlFor(devices.currentPage - 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Sebelumnya
+                                </a>
+                            @endif
+                            
+                            @if(devices.hasMorePages)
+                                <a href="{{ devices.getUrlFor(devices.currentPage + 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Selanjutnya
+                                </a>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <script>
+        function confirmDelete(deviceId, deviceName) {
+            customAlert.confirm(
+                `Apakah Anda yakin ingin menghapus perangkat <strong>${deviceName}</strong>?<br><br><span class="text-red-600">Data absensi terkait akan ikut terhapus!</span>`,
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/devices/${deviceId}`;
+                    form.innerHTML = `
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                'Konfirmasi Hapus Perangkat',
+                'Ya, Hapus',
+                'Batal'
+            );
+        }
+    </script>
+@end
+
+@end

@@ -1,0 +1,197 @@
+@layout.app({
+    title: 'Absensi Massal',
+    description: 'Halaman untuk input absensi massal per kelas.',
+    keywords: 'absensi, massal, kelas, siswa',
+    active: 'attendance',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Absensi', url: route('attendance.index') },
+        { name: 'Absensi Massal', url: route('attendance.bulk') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Absensi Massal</h2>
+                <p class="mt-1 text-sm text-gray-600">Input absensi untuk seluruh siswa dalam satu kelas</p>
+            </div>
+            <a href="{{ route('attendance.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-6">
+                <form id="bulkAttendanceForm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label for="classId" class="block text-sm font-medium text-gray-700">Pilih Kelas <span class="text-red-500">*</span></label>
+                            <select id="classId" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Pilih kelas</option>
+                                @each(classItem in classes)
+                                    <option value="{{ classItem.id }}">{{ classItem.name }} - Tingkat {{ classItem.gradeLevel }}</option>
+                                @endeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="attendanceDate" class="block text-sm font-medium text-gray-700">Tanggal Absensi <span class="text-red-500">*</span></label>
+                            <input type="date" id="attendanceDate" value="{{ today }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-900">Daftar Siswa</h3>
+                        <div class="flex space-x-2">
+                            <button type="button" onclick="markAll('present')" class="px-3 py-1 bg-green-100 text-green-700 rounded text-sm hover:bg-green-200">
+                                Semua Hadir
+                            </button>
+                            <button type="button" onclick="markAll('absent')" class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm hover:bg-red-200">
+                                Semua Tidak Hadir
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="studentsList" class="space-y-3">
+                        <!-- Students will be loaded here -->
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <a href="{{ route('attendance.index') }}" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Batal
+                        </a>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                            <i data-lucide="save" class="w-4 h-4 mr-2 inline"></i>
+                            Simpan Absensi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('classId').addEventListener('change', async function() {
+            const classId = this.value;
+            const studentsList = document.getElementById('studentsList');
+            
+            if (!classId) {
+                studentsList.innerHTML = '';
+                return;
+            }
+
+            // Find the selected class data
+            const classes = {{{ JSON.stringify(classes) }}};
+            const selectedClass = classes.find(c => c.id == classId);
+            
+            if (!selectedClass || !selectedClass.students) {
+                studentsList.innerHTML = '<p class="text-gray-500">Tidak ada siswa di kelas ini</p>';
+                return;
+            }
+
+            let html = '';
+            selectedClass.students.forEach(student => {
+                html += `
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mr-4">
+                                <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${student.name}</div>
+                                <div class="text-sm text-gray-500">NIS: ${student.studentId}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <select name="status_${student.id}" class="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="present">Hadir</option>
+                                <option value="late">Terlambat</option>
+                                <option value="absent">Tidak Hadir</option>
+                                <option value="excused">Izin</option>
+                            </select>
+                            <input type="time" name="time_${student.id}" class="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500" value="07:00">
+                            <input type="hidden" name="student_${student.id}" value="${student.id}">
+                        </div>
+                    </div>
+                `;
+            });
+
+            studentsList.innerHTML = html;
+            lucide.createIcons();
+        });
+
+        function markAll(status) {
+            const selects = document.querySelectorAll('select[name^="status_"]');
+            selects.forEach(select => {
+                select.value = status;
+            });
+        }
+
+    document.getElementById('bulkAttendanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const classId = document.getElementById('classId').value;
+            const attendanceDate = document.getElementById('attendanceDate').value;
+            
+            if (!classId || !attendanceDate) {
+                customAlert.error('Pilih kelas dan tanggal terlebih dahulu');
+                return;
+            }
+
+            // Collect attendance data
+            const attendanceData = [];
+            const studentInputs = document.querySelectorAll('input[name^="student_"]');
+            
+            studentInputs.forEach(input => {
+                const studentId = input.value;
+                const status = document.querySelector(`select[name="status_${studentId}"]`).value;
+                const time = document.querySelector(`input[name="time_${studentId}"]`).value;
+                
+                attendanceData.push({
+                    studentId: studentId,
+                    status: status,
+                    checkInTime: time ? `${attendanceDate}T${time}:00` : null
+                });
+            });
+
+            if (attendanceData.length === 0) {
+                customAlert.error('Tidak ada data siswa untuk disimpan');
+                return;
+            }
+
+            // Submit data
+            try {
+                const response = await fetch('/attendance/bulk', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: new URLSearchParams({
+                        classId: classId,
+                        attendanceDate: attendanceDate,
+                        attendanceData: JSON.stringify(attendanceData)
+                    })
+                });
+
+                if (response.ok) {
+                    customAlert.success('Data absensi berhasil disimpan');
+                    setTimeout(() => {
+                        window.location.href = '/attendance';
+                    }, 1500);
+                } else {
+                    customAlert.error('Gagal menyimpan data absensi');
+                }
+            } catch (error) {
+                customAlert.error('Terjadi kesalahan saat menyimpan data');
+            }
+        });
+    </script>
+@end
+
+@end

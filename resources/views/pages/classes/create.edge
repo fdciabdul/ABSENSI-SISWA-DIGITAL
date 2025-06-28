@@ -1,0 +1,117 @@
+@layout.app({
+    title: 'Tambah Kelas Baru',
+    description: 'Halaman untuk menambah kelas baru.',
+    keywords: 'kelas, tambah, manajemen, sekolah',
+    active: 'classes',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Kelas', url: route('classes.index') },
+        { name: 'Tambah Kelas', url: route('classes.create') }
+    ]
+})
+
+@slot('content')
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Tambah Kelas Baru</h2>
+                <p class="mt-1 text-sm text-gray-600">Isi form di bawah untuk menambah kelas baru</p>
+            </div>
+            <a href="{{ route('classes.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+
+        <div class="bg-white shadow rounded-lg">
+            <form method="POST" action="{{ route('classes.store') }}" class="space-y-6 p-6">
+                {{ csrfField() }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nama Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="name" 
+                            id="name"
+                            required
+                            placeholder="Contoh: X IPA 1"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="gradeLevel" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tingkat Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <select name="gradeLevel" id="gradeLevel" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Pilih Tingkat</option>
+                            <option value="10">Kelas 10</option>
+                            <option value="11">Kelas 11</option>
+                            <option value="12">Kelas 12</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="teacherId" class="block text-sm font-medium text-gray-700 mb-2">
+                            Wali Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <select name="teacherId" id="teacherId" required class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">Pilih Wali Kelas</option>
+                            @each(teacher in teachers)
+                                <option value="{{ teacher.id }}">{{ teacher.name }}</option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="academicYear" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tahun Akademik <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="academicYear" 
+                            id="academicYear"
+                            required
+                            placeholder="Contoh: 2024/2025"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="maxStudents" class="block text-sm font-medium text-gray-700 mb-2">
+                            Kapasitas Maksimal Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            name="maxStudents" 
+                            id="maxStudents"
+                            required
+                            min="1"
+                            max="50"
+                            placeholder="Contoh: 30"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                        <p class="mt-1 text-sm text-gray-500">Jumlah maksimal siswa yang dapat diterima di kelas ini</p>
+                    </div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <div class="flex justify-end space-x-3">
+                        <a href="{{ route('classes.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Batal
+                        </a>
+                        <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                            Simpan Kelas
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@end
+
+@end

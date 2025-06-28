@@ -1,0 +1,166 @@
+@layout.app({
+    title: 'Profil Saya',
+    description: 'Kelola informasi profil dan akun Anda.',
+    keywords: 'profil, akun, pengaturan',
+    active: 'profile'
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Profil Saya</h2>
+                <p class="mt-1 text-sm text-gray-600">Kelola informasi profil dan akun Anda</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('settings.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="settings" class="w-4 h-4 mr-2"></i>
+                    Pengaturan
+                </a>
+            </div>
+        </div>
+
+        <!-- Profile Card -->
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center space-x-6">
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0">
+                        <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <i data-lucide="user" class="w-10 h-10 text-indigo-600"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <div class="flex-1">
+                        <h3 class="text-lg font-medium text-gray-900">{{ user.name }}</h3>
+                        <p class="text-sm text-gray-500">{{ user.email }}</p>
+                        <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ user.role === 'admin' ? 'bg-red-100 text-red-800' : user.role === 'teacher' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
+                                {{ user.role === 'admin' ? 'Administrator' : user.role === 'teacher' ? 'Guru' : 'Staff' }}
+                            </span>
+                            @if(user.employeeId)
+                                <span>ID: {{ user.employeeId }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Avatar Button -->
+                    <div>
+                        <form action="{{ route('profile.avatar') }}" method="POST" enctype="multipart/form-data" id="avatarForm">
+                            {{ csrfField() }}
+                            <input type="file" name="avatar" id="avatar" class="hidden" accept="image/*" onchange="document.getElementById('avatarForm').submit()">
+                            <button type="button" onclick="document.getElementById('avatar').click()" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                <i data-lucide="camera" class="w-4 h-4 mr-2"></i>
+                                Upload Foto
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Edit Profile -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Edit Profil</h3>
+                    
+                    <form action="{{ route('profile.update') }}" method="POST" class="space-y-4">
+                        {{ csrfField() }}
+                        @method('PUT')
+                        
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                            <input type="text" name="name" id="name" value="{{ user.name }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                            <input type="email" name="email" id="email" value="{{ user.email }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700">Nomor Telepon</label>
+                            <input type="text" name="phone" id="phone" value="{{ user.phone || '' }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        
+                        <div>
+                            <label for="employeeId" class="block text-sm font-medium text-gray-700">ID Karyawan</label>
+                            <input type="text" name="employeeId" id="employeeId" value="{{ user.employeeId || '' }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Ubah Password</h3>
+                    
+                    <form action="{{ route('profile.password') }}" method="POST" class="space-y-4">
+                        {{ csrfField() }}
+                        @method('PUT')
+                        
+                        <div>
+                            <label for="currentPassword" class="block text-sm font-medium text-gray-700">Password Saat Ini</label>
+                            <input type="password" name="currentPassword" id="currentPassword" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="newPassword" class="block text-sm font-medium text-gray-700">Password Baru</label>
+                            <input type="password" name="newPassword" id="newPassword" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        
+                        <div>
+                            <label for="newPassword_confirmation" class="block text-sm font-medium text-gray-700">Konfirmasi Password Baru</label>
+                            <input type="password" name="newPassword_confirmation" id="newPassword_confirmation" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                        </div>
+                        
+                        <div>
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Ubah Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Stats -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Statistik Akun</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">{{ user.role === 'admin' ? 'Admin' : user.role === 'teacher' ? 'Guru' : 'Staff' }}</div>
+                        <div class="text-sm text-blue-600">Role</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">{{ user.createdAt.toFormat('dd/MM/yyyy') }}</div>
+                        <div class="text-sm text-green-600">Terdaftar Sejak</div>
+                    </div>
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-600">{{ user.lastLoginAt ? user.lastLoginAt.toFormat('dd/MM/yyyy') : 'Belum Pernah' }}</div>
+                        <div class="text-sm text-purple-600">Login Terakhir</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+    </script>
+@end
+
+@end

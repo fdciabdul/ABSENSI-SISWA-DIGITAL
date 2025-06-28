@@ -1,0 +1,211 @@
+@layout.app({
+    title: 'Tambah Absensi',
+    description: 'Halaman untuk menambah data absensi siswa.',
+    keywords: 'tambah, absensi, siswa',
+    active: 'attendance',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Absensi', url: route('attendance.index') },
+        { name: 'Tambah Absensi', url: route('attendance.create') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Tambah Data Absensi</h2>
+                <p class="mt-1 text-sm text-gray-600">Input data absensi siswa secara manual</p>
+            </div>
+            <a href="{{ route('attendance.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white rounded-lg shadow">
+            <form action="{{ route('attendance.store') }}" method="POST" class="p-6 space-y-6">
+                {{ csrfField() }}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Class Selection -->
+                    <div>
+                        <label for="classId" class="block text-sm font-medium text-gray-700">
+                            Pilih Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="classId" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih kelas terlebih dahulu</option>
+                            @each(classItem in classes)
+                                <option value="{{ classItem.id }}">{{ classItem.name }} - Tingkat {{ classItem.gradeLevel }}</option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Student Selection -->
+                    <div>
+                        <label for="studentId" class="block text-sm font-medium text-gray-700">
+                            Pilih Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="studentId" 
+                            id="studentId" 
+                            required
+                            disabled
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih kelas terlebih dahulu</option>
+                        </select>
+                    </div>
+
+                    <!-- Attendance Date -->
+                    <div>
+                        <label for="attendanceDate" class="block text-sm font-medium text-gray-700">
+                            Tanggal Absensi <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="date" 
+                            name="attendanceDate" 
+                            id="attendanceDate"
+                            value="{ DateTime.now().toFormat('yyyy-MM-dd') }"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700">
+                            Status Kehadiran <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="status" 
+                            id="status" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="present">Hadir</option>
+                            <option value="late">Terlambat</option>
+                            <option value="absent">Tidak Hadir</option>
+                            <option value="excused">Izin</option>
+                        </select>
+                    </div>
+
+                    <!-- Check In Time -->
+                    <div>
+                        <label for="checkInTime" class="block text-sm font-medium text-gray-700">
+                            Waktu Masuk
+                        </label>
+                        <input 
+                            type="time" 
+                            name="checkInTime" 
+                            id="checkInTime"
+                            value="07:00"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Schedule (optional) -->
+                    <div>
+                        <label for="scheduleId" class="block text-sm font-medium text-gray-700">
+                            Jadwal (Opsional)
+                        </label>
+                        <select 
+                            name="scheduleId" 
+                            id="scheduleId"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Tidak ada jadwal</option>
+                            @each(schedule in schedules)
+                                <option value="{{ schedule.id }}">{{ schedule.class.name }} - {{ schedule.subject }} ({{ schedule.startTime }}-{{ schedule.endTime }})</option>
+                            @endeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700">
+                        Catatan
+                    </label>
+                    <textarea 
+                        name="notes" 
+                        id="notes"
+                        rows="3"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="Catatan tambahan (opsional)"
+                    ></textarea>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{{ route('attendance.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 transition">
+                        Batal
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                        Simpan Absensi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Class and student selection logic
+        document.getElementById('classId').addEventListener('change', function() {
+            const classId = this.value;
+            const studentSelect = document.getElementById('studentId');
+            
+            if (!classId) {
+                studentSelect.innerHTML = '<option value="">Pilih kelas terlebih dahulu</option>';
+                studentSelect.disabled = true;
+                return;
+            }
+
+            // Find the selected class data
+            const classes = {{{ JSON.stringify(classes) }}};
+            const selectedClass = classes.find(c => c.id == classId);
+            
+            if (!selectedClass || !selectedClass.students) {
+                studentSelect.innerHTML = '<option value="">Tidak ada siswa di kelas ini</option>';
+                studentSelect.disabled = true;
+                return;
+            }
+
+            // Populate student options
+            let options = '<option value="">Pilih siswa</option>';
+            selectedClass.students.forEach(student => {
+                options += `<option value="${student.id}">${student.name} (${student.studentId})</option>`;
+            });
+
+            studentSelect.innerHTML = options;
+            studentSelect.disabled = false;
+        });
+
+        // Auto-fill time based on status
+        document.getElementById('status').addEventListener('change', function() {
+            const status = this.value;
+            const timeInput = document.getElementById('checkInTime');
+            
+            if (status === 'absent') {
+                timeInput.value = '';
+                timeInput.disabled = true;
+            } else {
+                timeInput.disabled = false;
+                if (status === 'late') {
+                    timeInput.value = '07:30';
+                } else {
+                    timeInput.value = '07:00';
+                }
+            }
+        });
+    </script>
+@end
+
+@end

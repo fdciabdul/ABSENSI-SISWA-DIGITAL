@@ -1,0 +1,497 @@
+@layout.app({
+    title: 'Daftarkan Wajah Siswa',
+    description: 'Halaman untuk mendaftarkan wajah siswa ke sistem.',
+    keywords: 'face recognition, daftar wajah, siswa',
+    active: 'face-recognition',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Pengenalan Wajah', url: route('face-recognition.index') },
+        { name: 'Daftarkan Wajah', url: route('face-recognition.register') }
+    ]
+})
+
+@slot('head')
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.min.js"></script>
+@end
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Daftarkan Wajah Siswa</h2>
+                <p class="mt-1 text-sm text-gray-600">Pilih siswa dan ambil foto wajah untuk sistem pengenalan</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('face-recognition.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <!-- Loading Status -->
+        <div id="loadingStatus" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                <span class="text-blue-800">Memuat model pengenalan wajah...</span>
+            </div>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-6">Pendaftaran Wajah</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Student Selection & Camera -->
+                <div class="space-y-6">
+                    <!-- Student Selection -->
+                    <div>
+                        <label for="student-select" class="block text-sm font-medium text-gray-700 mb-2">
+                            Pilih Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <select id="student-select" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">-- Pilih Siswa --</option>
+                            @each(student in students)
+                                <option value="{{ student.id }}" {{ request.input('student') == student.id ? 'selected' : '' }}>
+                                    {{ student.name }} ({{ student.studentId }}) - {{ student.class.name }}
+                                </option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Camera Section -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kamera</label>
+                        <div class="relative">
+                            <video id="video" width="100%" height="300" autoplay muted class="border rounded-lg bg-gray-100"></video>
+                            <canvas id="overlay" width="640" height="480" class="absolute top-0 left-0 border rounded-lg pointer-events-none"></canvas>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-3">
+                            <button onclick="startCamera()" id="startBtn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">
+                                <i data-lucide="video" class="w-4 h-4 inline mr-2"></i>
+                                Mulai Kamera
+                            </button>
+                            <button onclick="stopCamera()" id="stopBtn" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50" disabled>
+                                <i data-lucide="video-off" class="w-4 h-4 inline mr-2"></i>
+                                Hentikan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Capture Instructions -->
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <i data-lucide="info" class="w-5 h-5 text-yellow-400"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-yellow-800">Petunjuk Pengambilan Foto</h3>
+                                <div class="mt-2 text-sm text-yellow-700">
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>Pastikan wajah menghadap langsung ke kamera</li>
+                                        <li>Hindari pencahayaan yang terlalu terang atau gelap</li>
+                                        <li>Jangan gunakan aksesoris yang menutupi wajah</li>
+                                        <li>Pastikan hanya ada satu wajah dalam frame</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Captured Photos & Registration -->
+                <div class="space-y-6">
+                    <!-- Face Detection Status -->
+                    <div id="detection-status" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <div class="text-center text-gray-500">
+                            <i data-lucide="camera" class="w-12 h-12 mx-auto mb-2"></i>
+                            <p>Status deteksi wajah akan muncul di sini</p>
+                        </div>
+                    </div>
+
+                    <!-- Capture Button -->
+                    <div class="text-center">
+                        <button onclick="capturePhoto()" id="captureBtn" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 text-lg font-medium" disabled>
+                            <i data-lucide="camera" class="w-5 h-5 inline mr-2"></i>
+                            Ambil Foto Wajah
+                        </button>
+                    </div>
+
+                    <!-- Captured Photos Display -->
+                    <div id="captured-photos" class="space-y-4" style="display: none;">
+                        <h4 class="font-medium text-gray-900">Foto yang Diambil</h4>
+                        <div id="photos-container" class="grid grid-cols-2 gap-4">
+                            <!-- Photos will be displayed here -->
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="clearPhotos()" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                                <i data-lucide="trash-2" class="w-4 h-4 inline mr-2"></i>
+                                Hapus Semua
+                            </button>
+                            <button onclick="registerFace()" id="registerBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50" disabled>
+                                <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                                Daftarkan Wajah
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Registrations -->
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Siswa yang Belum Terdaftar</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Siswa</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @each(student in students.slice(0, 10))
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                        <i data-lucide="user" class="w-4 h-4 text-gray-600"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ student.name }}</div>
+                                        <div class="text-sm text-gray-500">{{ student.studentId }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ student.class.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <button onclick="selectStudent({{ student.id }})" class="text-indigo-600 hover:text-indigo-900">
+                                    Pilih untuk Daftar
+                                </button>
+                            </td>
+                        </tr>
+                        @else
+                       <tr>
+                           <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
+                               Semua siswa sudah terdaftar
+                           </td>
+                       </tr>
+                       @endeach
+                   </tbody>
+               </table>
+           </div>
+       </div>
+   </div>
+
+   <script>
+       let video, overlay, overlayCtx;
+       let isModelLoaded = false;
+       let isCameraActive = false;
+       let stream = null;
+       let capturedDescriptors = [];
+       let detectionInterval = null;
+
+       // Load models and initialize
+       async function loadModels() {
+           try {
+               const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
+               
+               await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+               await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+               await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+
+               isModelLoaded = true;
+               document.getElementById('loadingStatus').innerHTML = `
+                   <div class="flex items-center">
+                       <i data-lucide="check-circle" class="w-5 h-5 text-green-600 mr-3"></i>
+                       <span class="text-green-800">Model berhasil dimuat! Siap untuk pendaftaran wajah.</span>
+                   </div>
+               `;
+               document.getElementById('loadingStatus').className = 'bg-green-50 border border-green-200 rounded-lg p-4';
+               
+               document.getElementById('startBtn').disabled = false;
+               lucide.createIcons();
+           } catch (error) {
+               console.error('Error loading models:', error);
+               document.getElementById('loadingStatus').innerHTML = `
+                   <div class="flex items-center">
+                       <i data-lucide="x-circle" class="w-5 h-5 text-red-600 mr-3"></i>
+                       <span class="text-red-800">Gagal memuat model: ${error.message}</span>
+                   </div>
+               `;
+               document.getElementById('loadingStatus').className = 'bg-red-50 border border-red-200 rounded-lg p-4';
+               lucide.createIcons();
+           }
+       }
+
+       async function startCamera() {
+           if (!isModelLoaded) {
+               alert('Model belum selesai dimuat!');
+               return;
+           }
+
+           try {
+               video = document.getElementById('video');
+               overlay = document.getElementById('overlay');
+               overlayCtx = overlay.getContext('2d');
+
+               stream = await navigator.mediaDevices.getUserMedia({ 
+                   video: { 
+                       width: 640, 
+                       height: 480,
+                       facingMode: 'user'
+                   } 
+               });
+               
+               video.srcObject = stream;
+               isCameraActive = true;
+               
+               document.getElementById('startBtn').disabled = true;
+               document.getElementById('stopBtn').disabled = false;
+               document.getElementById('captureBtn').disabled = false;
+
+               // Start detection when video is ready
+               video.addEventListener('loadedmetadata', () => {
+                   overlay.width = video.videoWidth;
+                   overlay.height = video.videoHeight;
+                   startDetection();
+               });
+
+           } catch (error) {
+               console.error('Error accessing camera:', error);
+               alert('Tidak dapat mengakses kamera. Pastikan kamera tersedia dan izin diberikan.');
+           }
+       }
+
+       function stopCamera() {
+           if (stream) {
+               stream.getTracks().forEach(track => track.stop());
+               video.srcObject = null;
+               stream = null;
+           }
+           
+           if (detectionInterval) {
+               clearInterval(detectionInterval);
+               detectionInterval = null;
+           }
+           
+           isCameraActive = false;
+           document.getElementById('startBtn').disabled = false;
+           document.getElementById('stopBtn').disabled = true;
+           document.getElementById('captureBtn').disabled = true;
+
+           // Clear overlay
+           if (overlayCtx) {
+               overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+           }
+
+           updateDetectionStatus('Kamera dihentikan', 'gray');
+       }
+
+       async function startDetection() {
+           if (!isCameraActive || !video) return;
+
+           detectionInterval = setInterval(async () => {
+               try {
+                   const detections = await faceapi
+                       .detectAllFaces(video)
+                       .withFaceLandmarks()
+                       .withFaceDescriptors();
+
+                   // Clear overlay
+                   overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+                   if (detections.length === 0) {
+                       updateDetectionStatus('Tidak ada wajah terdeteksi', 'red');
+                   } else if (detections.length === 1) {
+                       // Draw detection box
+                       const detection = detections[0];
+                       const box = detection.detection.box;
+                       
+                       overlayCtx.strokeStyle = '#10B981';
+                       overlayCtx.lineWidth = 3;
+                       overlayCtx.strokeRect(box.x, box.y, box.width, box.height);
+                       
+                       overlayCtx.fillStyle = '#10B981';
+                       overlayCtx.font = '16px Arial';
+                       overlayCtx.fillText('Wajah Terdeteksi', box.x, box.y - 10);
+
+                       updateDetectionStatus('✓ Wajah terdeteksi - Siap untuk difoto', 'green');
+                   } else {
+                       updateDetectionStatus('Terdeteksi lebih dari satu wajah - Pastikan hanya satu orang', 'red');
+                   }
+               } catch (error) {
+                   console.error('Detection error:', error);
+               }
+           }, 200);
+       }
+
+       function updateDetectionStatus(message, color) {
+           const statusDiv = document.getElementById('detection-status');
+           const colors = {
+               green: 'bg-green-50 border-green-200 text-green-800',
+               red: 'bg-red-50 border-red-200 text-red-800',
+               gray: 'bg-gray-50 border-gray-200 text-gray-800'
+           };
+
+           statusDiv.className = `border rounded-lg p-4 ${colors[color]}`;
+           statusDiv.innerHTML = `
+               <div class="text-center">
+                   <p class="font-medium">${message}</p>
+               </div>
+           `;
+       }
+
+       async function capturePhoto() {
+           const studentSelect = document.getElementById('student-select');
+           if (!studentSelect.value) {
+               alert('Pilih siswa terlebih dahulu!');
+               return;
+           }
+
+           if (!isCameraActive || !video) {
+               alert('Kamera belum aktif!');
+               return;
+           }
+
+           try {
+               const detections = await faceapi
+                   .detectAllFaces(video)
+                   .withFaceLandmarks()
+                   .withFaceDescriptors();
+
+               if (detections.length === 0) {
+                   alert('Tidak ada wajah yang terdeteksi. Posisikan wajah di depan kamera.');
+                   return;
+               }
+
+               if (detections.length > 1) {
+                   alert('Terdeteksi lebih dari satu wajah. Pastikan hanya ada satu orang di depan kamera.');
+                   return;
+               }
+
+               // Capture the face descriptor
+               const faceDescriptor = detections[0].descriptor;
+               capturedDescriptors.push(Array.from(faceDescriptor));
+
+               // Capture image for display
+               const canvas = document.createElement('canvas');
+               canvas.width = video.videoWidth;
+               canvas.height = video.videoHeight;
+               const ctx = canvas.getContext('2d');
+               ctx.drawImage(video, 0, 0);
+
+               // Display captured photo
+               displayCapturedPhoto(canvas.toDataURL(), capturedDescriptors.length);
+
+               // Show photos container and enable register button
+               document.getElementById('captured-photos').style.display = 'block';
+               document.getElementById('registerBtn').disabled = false;
+
+               updateDetectionStatus(`✓ Foto ${capturedDescriptors.length} berhasil diambil`, 'green');
+
+           } catch (error) {
+               console.error('Error capturing photo:', error);
+               alert('Gagal mengambil foto. Coba lagi.');
+           }
+       }
+
+       function displayCapturedPhoto(imageDataUrl, photoNumber) {
+           const container = document.getElementById('photos-container');
+           const photoDiv = document.createElement('div');
+           photoDiv.className = 'relative';
+           photoDiv.innerHTML = `
+               <img src="${imageDataUrl}" class="w-full h-24 object-cover rounded-lg border">
+               <div class="absolute top-1 right-1 bg-green-600 text-white text-xs px-2 py-1 rounded">
+                   ${photoNumber}
+               </div>
+           `;
+           container.appendChild(photoDiv);
+       }
+
+       function clearPhotos() {
+           capturedDescriptors = [];
+           document.getElementById('photos-container').innerHTML = '';
+           document.getElementById('captured-photos').style.display = 'none';
+           document.getElementById('registerBtn').disabled = true;
+           updateDetectionStatus('Foto dihapus - Siap untuk mengambil foto baru', 'gray');
+       }
+
+       async function registerFace() {
+           const studentSelect = document.getElementById('student-select');
+           if (!studentSelect.value) {
+               alert('Pilih siswa terlebih dahulu!');
+               return;
+           }
+
+           if (capturedDescriptors.length === 0) {
+               alert('Ambil foto wajah terlebih dahulu!');
+               return;
+           }
+
+           try {
+               document.getElementById('registerBtn').disabled = true;
+               document.getElementById('registerBtn').innerHTML = `
+                   <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline mr-2"></div>
+                   Mendaftarkan...
+               `;
+
+               // Use the first (or average) descriptor
+               const faceDescriptor = capturedDescriptors[0];
+
+               const formData = new FormData();
+               formData.append('student_id', studentSelect.value);
+               formData.append('face_descriptor', JSON.stringify(faceDescriptor));
+
+               const response = await fetch('{{ route("face-recognition.store") }}', {
+                   method: 'POST',
+                   headers: {
+                       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                   },
+                   body: formData
+               });
+
+               if (response.ok) {
+                   alert('Wajah berhasil didaftarkan!');
+                   window.location.href = '{{ route("face-recognition.index") }}';
+               } else {
+                   throw new Error('Gagal mendaftarkan wajah');
+               }
+
+           } catch (error) {
+               console.error('Error registering face:', error);
+               alert('Gagal mendaftarkan wajah. Coba lagi.');
+               
+               document.getElementById('registerBtn').disabled = false;
+               document.getElementById('registerBtn').innerHTML = `
+                   <i data-lucide="save" class="w-4 h-4 inline mr-2"></i>
+                   Daftarkan Wajah
+               `;
+               lucide.createIcons();
+           }
+       }
+
+       function selectStudent(studentId) {
+           document.getElementById('student-select').value = studentId;
+           document.getElementById('student-select').focus();
+       }
+
+       // Initialize when page loads
+       document.addEventListener('DOMContentLoaded', function() {
+           loadModels();
+           lucide.createIcons();
+       });
+
+       // Cleanup when page unloads
+       window.addEventListener('beforeunload', function() {
+           stopCamera();
+       });
+   </script>
+@end
+
+@end

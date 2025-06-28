@@ -1,0 +1,177 @@
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+    <div id="alertModal" class="bg-white rounded-lg shadow-xl max-w-md w-full transform scale-95 transition-transform duration-300">
+        <div class="p-6 text-center">
+            <div id="alertIcon" class="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full">
+                <!-- Icon will be inserted here -->
+            </div>
+            <h3 id="alertTitle" class="text-lg font-semibold text-gray-900 mb-2"></h3>
+            <p id="alertMessage" class="text-gray-600 mb-6"></p>
+            <div id="alertActions" class="flex space-x-3">
+                <!-- Buttons will be inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Custom Alert System
+window.customAlert = {
+    currentCallback: null,
+    
+    show: function(options) {
+        const {
+            type = 'info',
+            title = 'Notifikasi',
+            message = '',
+            confirmText = 'OK',
+            cancelText = 'Batal',
+            onConfirm = null,
+            onCancel = null,
+            showCancel = false
+        } = options;
+
+        this.currentCallback = {
+            onConfirm: onConfirm,
+            onCancel: onCancel
+        };
+
+        const modal = document.getElementById('customAlert');
+        const alertModal = document.getElementById('alertModal');
+        const iconContainer = document.getElementById('alertIcon');
+        const titleElement = document.getElementById('alertTitle');
+        const messageElement = document.getElementById('alertMessage');
+        const actionsContainer = document.getElementById('alertActions');
+
+        titleElement.textContent = title;
+        messageElement.innerHTML = message;
+
+        const configs = {
+            success: {
+                icon: 'check-circle',
+                iconBg: 'bg-green-100',
+                iconColor: 'text-green-600',
+                buttonColor: 'bg-green-600 hover:bg-green-700'
+            },
+            error: {
+                icon: 'x-circle',
+                iconBg: 'bg-red-100',
+                iconColor: 'text-red-600',
+                buttonColor: 'bg-red-600 hover:bg-red-700'
+            },
+            warning: {
+                icon: 'alert-triangle',
+                iconBg: 'bg-yellow-100',
+                iconColor: 'text-yellow-600',
+                buttonColor: 'bg-yellow-600 hover:bg-yellow-700'
+            },
+            info: {
+                icon: 'info',
+                iconBg: 'bg-blue-100',
+                iconColor: 'text-blue-600',
+                buttonColor: 'bg-blue-600 hover:bg-blue-700'
+            },
+            confirm: {
+                icon: 'help-circle',
+                iconBg: 'bg-purple-100',
+                iconColor: 'text-purple-600',
+                buttonColor: 'bg-purple-600 hover:bg-purple-700'
+            }
+        };
+
+        const config = configs[type] || configs.info;
+
+        iconContainer.className = `flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full ${config.iconBg}`;
+        iconContainer.innerHTML = `<i data-lucide="${config.icon}" class="w-8 h-8 ${config.iconColor}"></i>`;
+
+        actionsContainer.innerHTML = '';
+        
+        if (showCancel || type === 'confirm') {
+            actionsContainer.innerHTML = `
+                <button onclick="customAlert.handleCancel()" 
+                        class="flex-1 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                    ${cancelText}
+                </button>
+                <button onclick="customAlert.handleConfirm()" 
+                        class="flex-1 text-white px-4 py-2.5 rounded-lg font-medium transition-colors ${config.buttonColor}">
+                    ${confirmText}
+                </button>
+            `;
+        } else {
+            actionsContainer.innerHTML = `
+                <button onclick="customAlert.handleConfirm()" 
+                        class="w-full text-white px-4 py-2.5 rounded-lg font-medium transition-colors ${config.buttonColor}">
+                    ${confirmText}
+                </button>
+            `;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            alertModal.classList.remove('scale-95');
+            alertModal.classList.add('scale-100');
+        }, 10);
+
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    },
+
+    handleConfirm: function() {
+        this.hide();
+        if (this.currentCallback && this.currentCallback.onConfirm) {
+            this.currentCallback.onConfirm();
+        }
+    },
+
+    handleCancel: function() {
+        this.hide();
+        if (this.currentCallback && this.currentCallback.onCancel) {
+            this.currentCallback.onCancel();
+        }
+    },
+
+    hide: function() {
+        const modal = document.getElementById('customAlert');
+        const alertModal = document.getElementById('alertModal');
+        
+        alertModal.classList.remove('scale-100');
+        alertModal.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            this.currentCallback = null;
+        }, 300);
+    },
+
+    success: function(message, title = 'Berhasil!') {
+        this.show({
+            type: 'success',
+            title: title,
+            message: message
+        });
+    },
+
+    error: function(message, title = 'Error!') {
+        this.show({
+            type: 'error',
+            title: title,
+            message: message
+        });
+    },
+
+    confirm: function(message, onConfirm, title = 'Konfirmasi', confirmText = 'Ya', cancelText = 'Tidak') {
+        this.show({
+            type: 'confirm',
+            title: title,
+            message: message,
+            confirmText: confirmText,
+            cancelText: cancelText,
+            onConfirm: onConfirm,
+            showCancel: true
+        });
+    }
+};
+</script>

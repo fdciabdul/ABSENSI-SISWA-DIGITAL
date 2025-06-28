@@ -1,0 +1,844 @@
+@layout.app({
+    title: 'Detail Siswa',
+    description: 'Halaman detail informasi siswa.',
+    keywords: 'detail, siswa, profil, absensi',
+    active: 'students',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Data Siswa', url: route('students.index') },
+        { name: 'Detail Siswa', url: route('students.show', { id: student.id }) }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Detail Siswa</h2>
+                <p class="mt-1 text-sm text-gray-600">Informasi lengkap data siswa</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ route('students.edit', { id: student.id }) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 transition">
+                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                    Edit Data
+                </a>
+                <a href="{{ route('students.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Student Profile Card -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-center">
+                        <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="user" class="w-12 h-12 text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">{{ student.name }}</h3>
+                        <p class="text-sm text-gray-500">NIS: {{ student.studentId }}</p>
+                        <div class="mt-4">
+                            @if(student.isActive)
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i data-lucide="check-circle" class="w-4 h-4 mr-1"></i>
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                                    <i data-lucide="x-circle" class="w-4 h-4 mr-1"></i>
+                                    Tidak Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                   
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+    <h5 class="text-sm font-medium text-gray-900 mb-3">Riwayat & History</h5>
+    <div class="grid grid-cols-2 gap-3">
+        <a href="/students/{{ student.id }}/all-history" class="flex items-center justify-center px-3 py-2 bg-indigo-100 text-indigo-700 rounded-md hover:bg-indigo-200 transition text-center">
+            <i data-lucide="history" class="w-4 h-4 mr-1"></i>
+            <span class="text-xs">Semua Riwayat</span>
+        </a>
+        <a href="/students/{{ student.id }}/attendance-history" class="flex items-center justify-center px-3 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition text-center">
+            <i data-lucide="calendar-check" class="w-4 h-4 mr-1"></i>
+            <span class="text-xs">Riwayat Absensi</span>
+        </a>
+        <a href="/students/{{ student.id }}/fingerprint-history" class="flex items-center justify-center px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition text-center">
+            <i data-lucide="fingerprint" class="w-4 h-4 mr-1"></i>
+            <span class="text-xs">Riwayat Fingerprint</span>
+        </a>
+        <a href="/students/{{ student.id }}/face-history" class="flex items-center justify-center px-3 py-2 bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200 transition text-center">
+            <i data-lucide="scan-face" class="w-4 h-4 mr-1"></i>
+            <span class="text-xs">Riwayat Face</span>
+        </a>
+    </div>
+</div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-lg shadow p-6 mt-6">
+                    <h4 class="text-lg font-medium text-gray-900 mb-4">Informasi Kontak</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <i data-lucide="mail" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Email</p>
+                                <p class="text-sm text-gray-600">{{ student.email }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <i data-lucide="phone" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Telepon</p>
+                                <p class="text-sm text-gray-600">{{ student.phone || 'Tidak ada' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Academic Information -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h4 class="text-lg font-medium text-gray-900">Informasi Akademik</h4>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Kelas</label>
+                                <p class="mt-1 text-sm text-gray-900">{{ student.class.name }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tingkat</label>
+                                <p class="mt-1 text-sm text-gray-900">Kelas {{ student.gradeLevel }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Wali Kelas</label>
+                                <p class="mt-1 text-sm text-gray-900">{{ student.class.teacher.name }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tahun Akademik</label>
+                                <p class="mt-1 text-sm text-gray-900">{{ student.class.academicYear }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fingerprint Management -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h4 class="text-lg font-medium text-gray-900">Manajemen Fingerprint</h4>
+                        @if(student.fingerprints.length < 10)
+                            <button onclick="showAddFingerprintModal()" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                                <i data-lucide="plus" class="w-4 h-4 mr-1"></i>
+                                Tambah Fingerprint
+                            </button>
+                        @endif
+                    </div>
+                    <div class="p-6">
+                        @if(student.fingerprints.length > 0)
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                @each(fingerprint in student.fingerprints)
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                                    <i data-lucide="fingerprint" class="w-5 h-5 text-green-600"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-green-900" id="finger-name-{{ fingerprint.fingerIndex }}">Jari {{ fingerprint.fingerIndex }}</p>
+                                                    <p class="text-xs text-green-700">Kualitas: {{ fingerprint.quality }}% | 
+                                                        Dibuat: {{ fingerprint.createdAt.toFormat('dd/MM/yyyy HH:mm') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <button onclick="testFingerprint({{ fingerprint.id }})" class="text-blue-600 hover:text-blue-800" title="Test Fingerprint">
+                                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                                </button>
+                                                <button onclick="deleteFingerprint({{ fingerprint.id }})" class="text-red-600 hover:text-red-800" title="Hapus Fingerprint">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endeach
+                            </div>
+                            
+                            <!-- Fingerprint Statistics -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                                    <div>
+                                        <p class="text-2xl font-bold text-gray-900">{{ student.fingerprints.length }}</p>
+                                        <p class="text-xs text-gray-500">Total Fingerprint</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-green-600" id="active-count">{{ student.fingerprints.length }}</p>
+                                        <p class="text-xs text-gray-500">Aktif</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-blue-600" id="avg-quality">0%</p>
+                                        <p class="text-xs text-gray-500">Rata-rata Kualitas</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-purple-600">{{ 10 - student.fingerprints.length }}</p>
+                                        <p class="text-xs text-gray-500">Slot Tersisa</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="fingerprint" class="w-10 h-10 text-gray-400"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Fingerprint</h3>
+                                <p class="text-gray-500 mb-4">Siswa belum mendaftarkan fingerprint untuk absensi</p>
+                                <button onclick="showAddFingerprintModal()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                                    Daftarkan Fingerprint Pertama
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Face Recognition Management -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h4 class="text-lg font-medium text-gray-900">Manajemen Face Recognition</h4>
+                        <button onclick="showFaceInstructionModal()" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                            <i data-lucide="camera" class="w-4 h-4 mr-1"></i>
+                            Panduan Daftar Wajah
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        @if(student.faceData.length > 0)
+                            <div class="space-y-4 mb-6">
+                                @each(faceData in student.faceData)
+                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center">
+                                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                                    <i data-lucide="user" class="w-6 h-6 text-blue-600"></i>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-blue-900">
+                                                        Data Wajah #{{ faceData.id }}
+                                                        @if(faceData.isActive)
+                                                            <span class="inline-flex px-2 py-0.5 ml-2 text-xs font-medium rounded-full bg-green-100 text-green-800">Aktif</span>
+                                                        @else
+                                                            <span class="inline-flex px-2 py-0.5 ml-2 text-xs font-medium rounded-full bg-gray-100 text-gray-800">Tidak Aktif</span>
+                                                        @endif
+                                                    </p>
+                                                    <p class="text-xs text-blue-700">
+                                                        Akurasi: {{ Math.round(faceData.confidence * 100) }}% | 
+                                                        Dibuat: {{ faceData.createdAt.toFormat('dd/MM/yyyy HH:mm') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                @if(faceData.isActive)
+                                                    <button onclick="toggleFaceStatus({{ faceData.id }}, false)" class="text-orange-600 hover:text-orange-800" title="Nonaktifkan">
+                                                        <i data-lucide="eye-off" class="w-4 h-4"></i>
+                                                    </button>
+                                                @else
+                                                    <button onclick="toggleFaceStatus({{ faceData.id }}, true)" class="text-green-600 hover:text-green-800" title="Aktifkan">
+                                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                                    </button>
+                                                @endif
+                                                <button onclick="deleteFaceData({{ faceData.id }})" class="text-red-600 hover:text-red-800" title="Hapus Data">
+                                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endeach
+                            </div>
+                            
+                            <!-- Face Data Statistics -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <p class="text-2xl font-bold text-gray-900">{{ student.faceData.length }}</p>
+                                        <p class="text-xs text-gray-500">Total Data Wajah</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-green-600" id="active-face-count">{{ student.faceData.filter(f => f.isActive).length }}</p>
+                                        <p class="text-xs text-gray-500">Aktif</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-2xl font-bold text-blue-600" id="avg-confidence">{{ student.faceData.length > 0 ? Math.round(student.faceData.reduce((sum, f) => sum + f.confidence, 0) / student.faceData.length * 100) : 0 }}%</p>
+                                        <p class="text-xs text-gray-500">Rata-rata Akurasi</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="camera" class="w-10 h-10 text-gray-400"></i>
+                                </div>
+                                <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Data Wajah</h3>
+                                <p class="text-gray-500 mb-4">Siswa belum mendaftarkan data wajah untuk face recognition</p>
+                                <button onclick="showFaceInstructionModal()" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                                    <i data-lucide="info" class="w-4 h-4 mr-2"></i>
+                                    Lihat Panduan Pendaftaran
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Recent Attendance -->
+                <div class="bg-white rounded-lg shadow">
+                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                        <h4 class="text-lg font-medium text-gray-900">Riwayat Absensi Terbaru</h4>
+                        <button onclick="showAttendanceModal()" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                            Lihat Semua
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        @if(student.attendances.length > 0)
+                            <div class="space-y-4">
+                                @each(attendance in student.attendances)
+                                    <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                                                @if(attendance.status === 'present')
+                                                    <i data-lucide="check" class="w-5 h-5 text-green-600"></i>
+                                                @elseif(attendance.status === 'late')
+                                                    <i data-lucide="clock" class="w-5 h-5 text-yellow-600"></i>
+                                                @elseif(attendance.status === 'absent')
+                                                    <i data-lucide="x" class="w-5 h-5 text-red-600"></i>
+                                                @else
+                                                    <i data-lucide="user-check" class="w-5 h-5 text-blue-600"></i>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">
+                                                    @if(attendance.schedule && attendance.schedule.class)
+                                                        {{ attendance.schedule.class.name }} - {{ attendance.attendanceDate.toFormat('dd/MM/yyyy') }}
+                                                    @else
+                                                        Kelas tidak tersedia - {{ attendance.attendanceDate.toFormat('dd/MM/yyyy') }}
+                                                    @endif
+                                                </p>
+                                                <p class="text-xs text-gray-500">
+                                                    {{ attendance.checkInTime ? attendance.checkInTime.toFormat('HH:mm') : '-' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            @if(attendance.status === 'present')
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>
+                                            @elseif(attendance.status === 'late')
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Terlambat</span>
+                                            @elseif(attendance.status === 'absent')
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak Hadir</span>
+                                            @else
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Izin</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i data-lucide="calendar-x" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Belum ada riwayat absensi</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Fingerprint Modal -->
+    <div id="addFingerprintModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Tambah Fingerprint Baru</h3>
+            </div>
+            <div class="p-6">
+                <form id="addFingerprintForm">
+                    <div class="space-y-4">
+                        <div>
+                            <label for="deviceSelect" class="block text-sm font-medium text-gray-700">Pilih Perangkat</label>
+                            <select id="deviceSelect" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Pilih perangkat fingerprint</option>
+                                @each(device in devices)
+                                    @if(device.isOnline)
+                                        <option value="{{ device.id }}">{{ device.deviceName }} ({{ device.location }})</option>
+                                    @endif
+                                @endeach
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="fingerSelect" class="block text-sm font-medium text-gray-700">Pilih Jari</label>
+                            <select id="fingerSelect" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Pilih jari yang akan didaftarkan</option>
+                                <option value="1">Jempol Kanan</option>
+                                <option value="2">Telunjuk Kanan</option>
+                                <option value="3">Jari Tengah Kanan</option>
+                                <option value="4">Jari Manis Kanan</option>
+                                <option value="5">Kelingking Kanan</option>
+                                <option value="6">Jempol Kiri</option>
+                                <option value="7">Telunjuk Kiri</option>
+                                <option value="8">Jari Tengah Kiri</option>
+                                <option value="9">Jari Manis Kiri</option>
+                                <option value="10">Kelingking Kiri</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex">
+                                <i data-lucide="info" class="w-5 h-5 text-blue-400 mr-2 mt-0.5"></i>
+                                <div class="text-sm text-blue-700">
+                                    <p class="font-medium">Instruksi Pendaftaran:</p>
+                                    <ol class="list-decimal list-inside mt-2 space-y-1">
+                                        <li>Pastikan perangkat fingerprint online</li>
+                                        <li>Klik tombol "Mulai Pendaftaran"</li>
+                                        <li>Letakkan jari pada sensor fingerprint</li>
+                                        <li>Ikuti instruksi pada perangkat</li>
+                                        <li>Ulangi 3-5 kali untuk kualitas optimal</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="closeAddFingerprintModal()" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Batal
+                </button>
+                <button onclick="startFingerprintEnrollment()" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                    <i data-lucide="fingerprint" class="w-4 h-4 mr-2 inline"></i>
+                    Mulai Pendaftaran
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Progress Modal -->
+    <div id="enrollmentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-60 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i data-lucide="fingerprint" class="w-8 h-8 text-indigo-600 animate-pulse"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Pendaftaran Fingerprint</h3>
+                <p class="text-sm text-gray-500 mb-4">Letakkan jari pada sensor dan ikuti instruksi</p>
+                <div class="bg-gray-200 rounded-full h-2 mb-4">
+                    <div id="enrollmentProgress" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="enrollmentStatus" class="text-sm text-gray-600">Menunggu sensor...</p>
+                <button onclick="cancelEnrollment()" class="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-md text-sm hover:bg-red-200">
+                    Batalkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face Registration Instruction Modal -->
+    <div id="faceInstructionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900">📸 Panduan Pendaftaran Wajah</h3>
+                <button onclick="closeFaceInstructionModal()" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="space-y-6">
+                    <!-- Student Info -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <i data-lucide="user" class="w-5 h-5 text-blue-600 mr-3 mt-0.5"></i>
+                            <div>
+                             <h4 class="font-medium text-blue-900">Informasi Siswa</h4>
+                               <p class="text-sm text-blue-700 mt-1">
+                                   <strong>Nama:</strong> {{ student.name }}<br>
+                                   <strong>NIS:</strong> {{ student.studentId }}<br>
+                                   <strong>Kelas:</strong> {{ student.class.name }}
+                               </p>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Software Instructions -->
+                   <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                       <div class="flex items-start">
+                           <i data-lucide="monitor" class="w-5 h-5 text-green-600 mr-3 mt-0.5"></i>
+                           <div class="flex-1">
+                               <h4 class="font-medium text-green-900">Menggunakan Software Desktop</h4>
+                               <div class="text-sm text-green-700 mt-2 space-y-2">
+                                   <p><strong>1. Buka Aplikasi Smart Attendance System</strong></p>
+                                   <p class="ml-4">• Jalankan file aplikasi face registration</p>
+                                   <p class="ml-4">• Pastikan koneksi internet stabil</p>
+                                   
+                                   <p><strong>2. Login dengan Password Admin</strong></p>
+                                   <p class="ml-4">• Klik tombol "👤 Register"</p>
+                                   <p class="ml-4">• Masukkan password admin yang benar</p>
+                                   
+                                   <p><strong>3. Pilih Siswa</strong></p>
+                                   <p class="ml-4">• Klik "📥 Load Students" untuk memuat data</p>
+                                   <p class="ml-4">• Cari dan pilih: <strong>{{ student.name }}</strong></p>
+                                   <p class="ml-4">• Pastikan data siswa yang dipilih benar</p>
+                                   
+                                   <p><strong>4. Ambil Foto Wajah</strong></p>
+                                   <p class="ml-4">• Klik "📹 Start" untuk mengaktifkan kamera</p>
+                                   <p class="ml-4">• Posisikan wajah dengan baik di depan kamera</p>
+                                   <p class="ml-4">• Klik "📸 Capture Face" untuk mengambil foto</p>
+                                   <p class="ml-4">• Konfirmasi pendaftaran wajah</p>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Camera Guidelines -->
+                   <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                       <div class="flex items-start">
+                           <i data-lucide="camera" class="w-5 h-5 text-yellow-600 mr-3 mt-0.5"></i>
+                           <div>
+                               <h4 class="font-medium text-yellow-900">Tips Pengambilan Foto</h4>
+                               <ul class="text-sm text-yellow-700 mt-2 space-y-1">
+                                   <li>• Pastikan pencahayaan cukup terang</li>
+                                   <li>• Wajah menghadap langsung ke kamera</li>
+                                   <li>• Jarak 30-50 cm dari kamera</li>
+                                   <li>• Lepas kacamata dan masker</li>
+                                   <li>• Ekspresi wajah netral</li>
+                                   <li>• Jangan bergerak saat pengambilan foto</li>
+                               </ul>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Important Notes -->
+                   <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                       <div class="flex items-start">
+                           <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 mr-3 mt-0.5"></i>
+                           <div>
+                               <h4 class="font-medium text-red-900">Catatan Penting</h4>
+                               <ul class="text-sm text-red-700 mt-2 space-y-1">
+                                   <li>• Hanya admin yang bisa mendaftarkan wajah</li>
+                                   <li>• Setiap siswa hanya perlu 1 data wajah</li>
+                                   <li>• Data wajah akan tersimpan otomatis di sistem</li>
+                                   <li>• Refresh halaman ini setelah pendaftaran selesai</li>
+                               </ul>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Contact Info -->
+                   <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                       <div class="flex items-start">
+                           <i data-lucide="help-circle" class="w-5 h-5 text-gray-600 mr-3 mt-0.5"></i>
+                           <div>
+                               <h4 class="font-medium text-gray-900">Bantuan</h4>
+                               <p class="text-sm text-gray-600 mt-1">
+                                   Jika mengalami kesulitan, hubungi administrator sistem atau IT support sekolah.
+                               </p>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </div>
+           <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+               <button onclick="closeFaceInstructionModal()" class="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700">
+                   Mengerti
+               </button>
+           </div>
+       </div>
+   </div>
+
+   <script>
+       // Initialize finger names and statistics when page loads
+       document.addEventListener('DOMContentLoaded', function() {
+           // Update finger names
+           const fingerNames = {
+               1: 'Jempol Kanan',
+               2: 'Telunjuk Kanan', 
+               3: 'Jari Tengah Kanan',
+               4: 'Jari Manis Kanan',
+               5: 'Kelingking Kanan',
+               6: 'Jempol Kiri',
+               7: 'Telunjuk Kiri',
+               8: 'Jari Tengah Kiri', 
+               9: 'Jari Manis Kiri',
+               10: 'Kelingking Kiri'
+           };
+
+           // Update finger names in the DOM
+           @each(fingerprint in student.fingerprints)
+               const fingerElement = document.getElementById('finger-name-{{ fingerprint.fingerIndex }}');
+               if (fingerElement) {
+                   fingerElement.textContent = fingerNames[{{ fingerprint.fingerIndex }}] || 'Jari {{ fingerprint.fingerIndex }}';
+               }
+           @endeach
+
+           // Calculate and update average quality
+           const fingerprints = {{{ JSON.stringify(student.fingerprints) }}};
+           if (fingerprints.length > 0) {
+               const totalQuality = fingerprints.reduce((sum, f) => sum + f.quality, 0);
+               const avgQuality = Math.round(totalQuality / fingerprints.length);
+               const avgElement = document.getElementById('avg-quality');
+               if (avgElement) {
+                   avgElement.textContent = avgQuality + '%';
+               }
+           }
+       });
+
+       // Fingerprint functions
+       function showAddFingerprintModal() {
+           document.getElementById('addFingerprintModal').classList.remove('hidden');
+       }
+
+       function closeAddFingerprintModal() {
+           document.getElementById('addFingerprintModal').classList.add('hidden');
+           document.getElementById('addFingerprintForm').reset();
+       }
+
+       async function startFingerprintEnrollment() {
+           const deviceId = document.getElementById('deviceSelect').value;
+           const fingerIndex = document.getElementById('fingerSelect').value;
+           
+           if (!deviceId || !fingerIndex) {
+               customAlert.error('Pilih perangkat dan jari terlebih dahulu');
+               return;
+           }
+           
+           // Check if finger already registered
+           const existingFingers = {{{ JSON.stringify(student.fingerprints.map(f => f.fingerIndex)) }}};
+           if (existingFingers.includes(parseInt(fingerIndex))) {
+               customAlert.error('Jari tersebut sudah terdaftar');
+               return;
+           }
+           
+           closeAddFingerprintModal();
+           showEnrollmentModal();
+           
+           try {
+               const response = await fetch('/fingerprint/enroll', {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                   },
+                   body: JSON.stringify({
+                       studentId: {{ student.id }},
+                       deviceId: deviceId,
+                       fingerIndex: fingerIndex
+                   })
+               });
+               
+               const data = await response.json();
+               
+               if (data.success) {
+                   pollEnrollmentStatus(data.enrollmentId);
+               } else {
+                   hideEnrollmentModal();
+                   customAlert.error(data.message || 'Gagal memulai pendaftaran');
+               }
+           } catch (error) {
+               hideEnrollmentModal();
+               customAlert.error('Terjadi kesalahan saat memulai pendaftaran');
+           }
+       }
+
+       function showEnrollmentModal() {
+           document.getElementById('enrollmentModal').classList.remove('hidden');
+           updateEnrollmentProgress(0, 'Menginisialisasi...');
+       }
+
+       function hideEnrollmentModal() {
+           document.getElementById('enrollmentModal').classList.add('hidden');
+       }
+
+       function updateEnrollmentProgress(percentage, status) {
+           document.getElementById('enrollmentProgress').style.width = percentage + '%';
+           document.getElementById('enrollmentStatus').textContent = status;
+       }
+
+       async function pollEnrollmentStatus(enrollmentId) {
+           const maxAttempts = 60;
+           let attempts = 0;
+           
+           const poll = async () => {
+               if (attempts >= maxAttempts) {
+                   hideEnrollmentModal();
+                   customAlert.error('Pendaftaran timeout. Silakan coba lagi.');
+                   return;
+               }
+               
+               try {
+                   const response = await fetch(`/fingerprint/enrollment-status/${enrollmentId}`);
+                   const data = await response.json();
+                   
+                   updateEnrollmentProgress(data.progress, data.status);
+                   
+                   if (data.completed) {
+                       hideEnrollmentModal();
+                       if (data.success) {
+                           customAlert.success('Fingerprint berhasil didaftarkan!');
+                           location.reload();
+                       } else {
+                           customAlert.error(data.message || 'Pendaftaran gagal');
+                       }
+                       return;
+                   }
+                   
+                   attempts++;
+                   setTimeout(poll, 1000);
+               } catch (error) {
+                   attempts++;
+                   setTimeout(poll, 1000);
+               }
+           };
+           
+           poll();
+       }
+
+       async function cancelEnrollment() {
+           hideEnrollmentModal();
+           customAlert.show({
+               type: 'info',
+               title: 'Pendaftaran Dibatalkan',
+               message: 'Pendaftaran fingerprint telah dibatalkan',
+               confirmText: 'OK'
+           });
+       }
+
+       async function deleteFingerprint(fingerprintId) {
+           customAlert.confirm(
+               'Apakah Anda yakin ingin menghapus data fingerprint ini?<br><br><span class="text-red-600">Data yang dihapus tidak dapat dikembalikan!</span>',
+               async function() {
+                   try {
+                       const response = await fetch(`/fingerprint/${fingerprintId}`, {
+                           method: 'DELETE',
+                           headers: {
+                               'Content-Type': 'application/json',
+                               'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                           }
+                       });
+                       
+                       const data = await response.json();
+                       
+                       if (data.success) {
+                           customAlert.success('Fingerprint berhasil dihapus');
+                           location.reload();
+                       } else {
+                           customAlert.error('Gagal menghapus fingerprint');
+                       }
+                   } catch (error) {
+                       customAlert.error('Terjadi kesalahan saat menghapus');
+                   }
+               },
+               'Konfirmasi Hapus',
+               'Ya, Hapus',
+               'Batal'
+           );
+       }
+
+       async function testFingerprint(fingerprintId) {
+           customAlert.show({
+               type: 'info',
+               title: 'Test Fingerprint',
+               message: 'Fitur test fingerprint akan segera tersedia',
+               confirmText: 'OK'
+           });
+       }
+
+       // Face recognition functions
+       function showFaceInstructionModal() {
+           document.getElementById('faceInstructionModal').classList.remove('hidden');
+       }
+
+       function closeFaceInstructionModal() {
+           document.getElementById('faceInstructionModal').classList.add('hidden');
+       }
+
+       async function toggleFaceStatus(faceDataId, isActive) {
+           try {
+               const response = await fetch(`/face-data/${faceDataId}/toggle`, {
+                   method: 'PATCH',
+                   headers: {
+                       'Content-Type': 'application/json',
+                       'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                   },
+                   body: JSON.stringify({ isActive })
+               });
+               
+               const data = await response.json();
+               
+               if (data.success) {
+                   customAlert.success(`Data wajah berhasil ${isActive ? 'diaktifkan' : 'dinonaktifkan'}`);
+                   location.reload();
+               } else {
+                   customAlert.error('Gagal mengubah status data wajah');
+               }
+           } catch (error) {
+               customAlert.error('Terjadi kesalahan saat mengubah status');
+           }
+       }
+
+       async function deleteFaceData(faceDataId) {
+           customAlert.confirm(
+               'Apakah Anda yakin ingin menghapus data wajah ini?<br><br><span class="text-red-600">Data yang dihapus tidak dapat dikembalikan!</span>',
+               async function() {
+                   try {
+                       const response = await fetch(`/face-data/${faceDataId}`, {
+                           method: 'DELETE',
+                           headers: {
+                               'Content-Type': 'application/json',
+                               'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                           }
+                       });
+                       
+                       const data = await response.json();
+                       
+                       if (data.success) {
+                           customAlert.success('Data wajah berhasil dihapus');
+                           location.reload();
+                       } else {
+                           customAlert.error('Gagal menghapus data wajah');
+                       }
+                   } catch (error) {
+                       customAlert.error('Terjadi kesalahan saat menghapus');
+                   }
+               },
+               'Konfirmasi Hapus',
+               'Ya, Hapus',
+               'Batal'
+           );
+       }
+
+       // General functions
+       function showAttendanceModal() {
+           customAlert.show({
+               type: 'info',
+               title: 'Riwayat Absensi',
+               message: 'Fitur detail riwayat absensi akan segera tersedia.',
+               confirmText: 'OK'
+           });
+       }
+
+       function showFingerprintModal() {
+           customAlert.show({
+               type: 'info',
+               title: 'Manajemen Fingerprint',
+               message: 'Fitur manajemen fingerprint akan segera tersedia.',
+               confirmText: 'OK'
+           });
+       }
+   </script>
+@end
+
+@end

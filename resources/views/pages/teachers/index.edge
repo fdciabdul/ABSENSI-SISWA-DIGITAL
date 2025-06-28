@@ -1,0 +1,197 @@
+@layout.app({
+    title: 'Manajemen Guru',
+    description: 'Halaman untuk mengelola data guru.',
+    keywords: 'guru, manajemen, sekolah',
+    active: 'teachers',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Guru', url: route('teachers.index') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Manajemen Guru</h2>
+                <p class="mt-1 text-sm text-gray-600">Kelola data guru di sekolah</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('teachers.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Guru
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700">Cari Guru</label>
+                    <input 
+                        type="text" 
+                        name="search" 
+                        id="search"
+                        value="{{ search }}"
+                        placeholder="Nama, NIP, atau email"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700">Mata Pelajaran</label>
+                    <input 
+                        type="text" 
+                        name="subject" 
+                        id="subject"
+                        value="{{ subject }}"
+                        placeholder="Contoh: Matematika"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Status</option>
+                        <option value="active" {{ status === 'active' ? 'selected' : '' }}>Aktif</option>
+                        <option value="inactive" {{ status === 'inactive' ? 'selected' : '' }}>Tidak Aktif</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @each(teacher in teachers.all())
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="user-check" class="w-6 h-6 text-green-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ teacher.name }}</h3>
+                                <p class="text-sm text-gray-500">{{ teacher.employeeId }}</p>
+                            </div>
+                        </div>
+                        <div>
+                            @if(teacher.isActive)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Tidak Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="book-open" class="w-4 h-4 mr-2"></i>
+                            <span>{{ teacher.subject }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="mail" class="w-4 h-4 mr-2"></i>
+                            <span class="truncate">{{ teacher.email }}</span>
+                        </div>
+                        @if(teacher.phone)
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="phone" class="w-4 h-4 mr-2"></i>
+                            <span>{{ teacher.phone }}</span>
+                        </div>
+                        @endif
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="school" class="w-4 h-4 mr-2"></i>
+                            <span>{{ teacher.classes.length }} Kelas</span>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <a href="{{ route('teachers.show', { id: teacher.id }) }}" class="flex-1 bg-blue-50 text-blue-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-blue-100 transition">
+                            <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                            Detail
+                        </a>
+                        <a href="{{ route('teachers.edit', { id: teacher.id }) }}" class="flex-1 bg-yellow-50 text-yellow-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-yellow-100 transition">
+                            <i data-lucide="edit" class="w-4 h-4 inline mr-1"></i>
+                            Edit
+                        </a>
+                        <button onclick="confirmDelete({{ teacher.id }}, '{{ teacher.name }}')" class="flex-1 bg-red-50 text-red-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-red-100 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4 inline mr-1"></i>
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @else
+            <div class="col-span-full text-center py-12">
+                <i data-lucide="user-check" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Guru</h3>
+                <p class="text-gray-500 mb-4">Belum ada guru yang terdaftar di sistem</p>
+                <a href="{{ route('teachers.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Guru Pertama
+                </a>
+            </div>
+            @endeach
+        </div>
+
+        @if(teachers.total > 0)
+            <div class="bg-white px-4 py-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        Menampilkan {{ teachers.firstPage }} sampai {{ teachers.lastPage }} dari {{ teachers.total }} guru
+                    </div>
+                    <div class="flex space-x-2">
+                        @if(teachers.hasPages)
+                            @if(teachers.currentPage > 1)
+                                <a href="{{ teachers.getUrlFor(teachers.currentPage - 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Sebelumnya
+                                </a>
+                            @endif
+                            
+                            @if(teachers.hasMorePages)
+                                <a href="{{ teachers.getUrlFor(teachers.currentPage + 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                    Selanjutnya
+                                </a>
+                            @endif
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <script>
+        function confirmDelete(teacherId, teacherName) {
+            customAlert.confirm(
+                `Apakah Anda yakin ingin menghapus guru <strong>${teacherName}</strong>?<br><br><span class="text-red-600">Pastikan guru ini tidak memiliki kelas atau jadwal aktif!</span>`,
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/teachers/${teacherId}`;
+                    form.innerHTML = `
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                'Konfirmasi Hapus Guru',
+                'Ya, Hapus',
+                'Batal'
+            );
+        }
+    </script>
+@end
+
+@end

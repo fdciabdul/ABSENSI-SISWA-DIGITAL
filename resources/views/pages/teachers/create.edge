@@ -1,0 +1,118 @@
+@layout.app({
+    title: 'Tambah Guru Baru',
+    description: 'Halaman untuk menambah guru baru.',
+    keywords: 'guru, tambah, manajemen, sekolah',
+    active: 'teachers',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Guru', url: route('teachers.index') },
+        { name: 'Tambah Guru', url: route('teachers.create') }
+    ]
+})
+
+@slot('content')
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Tambah Guru Baru</h2>
+                <p class="mt-1 text-sm text-gray-600">Isi form di bawah untuk menambah guru baru</p>
+            </div>
+            <a href="{{ route('teachers.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+
+        <div class="bg-white shadow rounded-lg">
+            <form method="POST" action="{{ route('teachers.store') }}" class="space-y-6 p-6">
+                {{ csrfField() }}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="employeeId" class="block text-sm font-medium text-gray-700 mb-2">
+                            NIP <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="employeeId" 
+                            id="employeeId"
+                            required
+                            placeholder="Contoh: 198501152010011001"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nama Lengkap <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="name" 
+                            id="name"
+                            required
+                            placeholder="Contoh: Dr. Ahmad Subagio, S.Pd"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            name="email" 
+                            id="email"
+                            required
+                            placeholder="Contoh: ahmad.subagio@sekolah.sch.id"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nomor Telepon
+                        </label>
+                        <input 
+                            type="text" 
+                            name="phone" 
+                            id="phone"
+                            placeholder="Contoh: 08123456789"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">
+                            Mata Pelajaran <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="subject" 
+                            id="subject"
+                            required
+                            placeholder="Contoh: Matematika"
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                        <p class="mt-1 text-sm text-gray-500">Mata pelajaran utama yang diampu oleh guru</p>
+                    </div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <div class="flex justify-end space-x-3">
+                        <a href="{{ route('teachers.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Batal
+                        </a>
+                        <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                            Simpan Guru
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+@end
+
+@end

@@ -1,0 +1,237 @@
+@layout.app({
+    title: 'Edit Jadwal',
+    description: 'Halaman untuk mengedit jadwal pelajaran.',
+    keywords: 'edit, jadwal, pelajaran',
+    active: 'schedules',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Jadwal', url: route('schedules.index') },
+        { name: 'Edit Jadwal', url: route('schedules.edit', { id: schedule.id }) }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Edit Jadwal</h2>
+                <p class="mt-1 text-sm text-gray-600">Perbarui informasi jadwal pelajaran</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ route('schedules.show', { id: schedule.id }) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 transition">
+                    <i data-lucide="eye" class="w-4 h-4 mr-2"></i>
+                    Lihat Detail
+                </a>
+                <a href="{{ route('schedules.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <!-- Current Info -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center">
+                <i data-lucide="info" class="w-5 h-5 text-blue-400 mr-3"></i>
+                <div>
+                    <h3 class="text-sm font-medium text-blue-800">Jadwal Saat Ini</h3>
+                    <p class="text-sm text-blue-700 mt-1">
+                        <strong>{{ schedule.subject }}</strong> - {{ schedule.class.name }} - 
+                        @if(schedule.dayOfWeek == 1)Senin
+                        @elseif(schedule.dayOfWeek == 2)Selasa
+                        @elseif(schedule.dayOfWeek == 3)Rabu
+                        @elseif(schedule.dayOfWeek == 4)Kamis
+                        @elseif(schedule.dayOfWeek == 5)Jumat
+                        @elseif(schedule.dayOfWeek == 6)Sabtu
+                        @endif
+                        {{ schedule.startTime.slice(0, 5) }}-{{ schedule.endTime.slice(0, 5) }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white rounded-lg shadow">
+            <form action="{{ route('schedules.update', { id: schedule.id }) }}" method="POST" class="p-6 space-y-6">
+                {{ csrfField() }}
+                <input type="hidden" name="_method" value="PUT">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Class -->
+                    <div>
+                        <label for="classId" class="block text-sm font-medium text-gray-700">
+                            Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="classId" 
+                            id="classId" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Kelas</option>
+                            @each(classItem in classes)
+                                <option value="{{ classItem.id }}" {{ schedule.classId == classItem.id ? 'selected' : '' }}>
+                                    {{ classItem.name }} - Tingkat {{ classItem.gradeLevel }}
+                                </option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Teacher -->
+                    <div>
+                        <label for="teacherId" class="block text-sm font-medium text-gray-700">
+                            Guru <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="teacherId" 
+                            id="teacherId" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Guru</option>
+                            @each(teacher in teachers)
+                                <option value="{{ teacher.id }}" {{ schedule.teacherId == teacher.id ? 'selected' : '' }}>
+                                    {{ teacher.name }} - {{ teacher.subject }}
+                                </option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Subject -->
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-gray-700">
+                            Mata Pelajaran <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="subject" 
+                            id="subject"
+                            value="{{ schedule.subject }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Day of Week -->
+                    <div>
+                        <label for="dayOfWeek" class="block text-sm font-medium text-gray-700">
+                            Hari <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="dayOfWeek" 
+                            id="dayOfWeek" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Hari</option>
+                            <option value="1" {{ schedule.dayOfWeek == 1 ? 'selected' : '' }}>Senin</option>
+                            <option value="2" {{ schedule.dayOfWeek == 2 ? 'selected' : '' }}>Selasa</option>
+                            <option value="3" {{ schedule.dayOfWeek == 3 ? 'selected' : '' }}>Rabu</option>
+                            <option value="4" {{ schedule.dayOfWeek == 4 ? 'selected' : '' }}>Kamis</option>
+                            <option value="5" {{ schedule.dayOfWeek == 5 ? 'selected' : '' }}>Jumat</option>
+                            <option value="6" {{ schedule.dayOfWeek == 6 ? 'selected' : '' }}>Sabtu</option>
+                        </select>
+                    </div>
+
+                    <!-- Start Time -->
+                    <div>
+                        <label for="startTime" class="block text-sm font-medium text-gray-700">
+                            Waktu Mulai <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            name="startTime" 
+                            id="startTime"
+                            value="{{ schedule.startTime.slice(0, 5) }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- End Time -->
+                    <div>
+                        <label for="endTime" class="block text-sm font-medium text-gray-700">
+                            Waktu Selesai <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            name="endTime" 
+                            id="endTime"
+                            value="{{ schedule.endTime.slice(0, 5) }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Room -->
+                    <div>
+                        <label for="room" class="block text-sm font-medium text-gray-700">
+                            Ruang Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="room" 
+                            id="room"
+                            value="{{ schedule.room }}"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Status -->
+                    <div>
+                        <label for="isActive" class="block text-sm font-medium text-gray-700">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="isActive" 
+                            id="isActive" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="true" {{ schedule.isActive ? 'selected' : '' }}>Aktif</option>
+                            <option value="false" {{ !schedule.isActive ? 'selected' : '' }}>Tidak Aktif</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{{ route('schedules.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 transition">
+                        Batal
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Validate time inputs
+        document.getElementById('endTime').addEventListener('change', function() {
+            const startTime = document.getElementById('startTime').value;
+            const endTime = this.value;
+            
+            if (startTime && endTime && startTime >= endTime) {
+                customAlert.error('Waktu selesai harus lebih lambat dari waktu mulai');
+                this.value = '{{ schedule.endTime.slice(0, 5) }}';
+            }
+        });
+
+        document.getElementById('startTime').addEventListener('change', function() {
+            const startTime = this.value;
+            const endTime = document.getElementById('endTime').value;
+            
+            if (startTime && endTime && startTime >= endTime) {
+                customAlert.error('Waktu mulai harus lebih awal dari waktu selesai');
+                this.value = '{{ schedule.startTime.slice(0, 5) }}';
+            }
+        });
+    </script>
+@end
+
+@end

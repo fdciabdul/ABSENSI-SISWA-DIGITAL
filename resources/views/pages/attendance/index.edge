@@ -1,0 +1,319 @@
+@layout.app({
+title: 'Manajemen Absensi',
+description: 'Halaman untuk mengelola data absensi siswa.',
+keywords: 'absensi, siswa, kehadiran, manajemen',
+active: 'attendance',
+breadcrumb: [
+{ name: 'Dashboard', url: route('dashboard') },
+{ name: 'Manajemen Absensi', url: route('attendance.index') }
+]
+})
+
+@slot('content')
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">Manajemen Absensi</h2>
+            <p class="mt-1 text-sm text-gray-600">Kelola data kehadiran siswa</p>
+        </div>
+        <div class="mt-4 sm:mt-0 flex space-x-3">
+            <a href="{{ route('attendance.bulk') }}"
+                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition">
+                <i data-lucide="users" class="w-4 h-4 mr-2"></i>
+                Absensi Massal
+            </a>
+            <a href="{{ route('attendance.create') }}"
+                class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                Tambah Absensi
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="date" class="block text-sm font-medium text-gray-700">Tanggal</label>
+                <input type="date" name="date" id="date" value="{{ date }}"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    placeholder="Pilih tanggal (kosongkan untuk semua)">
+                <p class="text-xs text-gray-500 mt-1">Kosongkan untuk melihat semua data</p>
+            </div>
+
+            <div>
+                <label for="class" class="block text-sm font-medium text-gray-700">Kelas</label>
+                <select name="class" id="class"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Semua Kelas</option>
+                    @each(classItem in classes)
+                    <option value="{{ classItem.id }}" {{ classFilter==classItem.id ? 'selected' : '' }}>
+                        {{ classItem.name }}
+                    </option>
+                    @endeach
+                </select>
+            </div>
+
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" id="status"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Semua Status</option>
+                    <option value="present" {{ status==='present' ? 'selected' : '' }}>Hadir</option>
+                    <option value="late" {{ status==='late' ? 'selected' : '' }}>Terlambat</option>
+                    <option value="absent" {{ status==='absent' ? 'selected' : '' }}>Tidak Hadir</option>
+                    <option value="excused" {{ status==='excused' ? 'selected' : '' }}>Izin</option>
+                </select>
+            </div>
+
+            <div class="flex items-end">
+                <button type="submit"
+                    class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition">
+                    <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Hadir</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ attendances.filter(a => a.status ===
+                                'present').length }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="clock" class="w-4 h-4 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Terlambat</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ attendances.filter(a => a.status ===
+                                'late').length }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="x" class="w-4 h-4 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Tidak Hadir</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ attendances.filter(a => a.status ===
+                                'absent').length }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <i data-lucide="user-check" class="w-4 h-4 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Izin</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ attendances.filter(a => a.status ===
+                                'excused').length }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Siswa
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu
+                            Masuk</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @each(attendance in attendances)
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-indigo-600"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ attendance.student.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ attendance.student.studentId }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ attendance.schedule ? attendance.schedule.class.name : '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ attendance.attendanceDate.toFormat('dd/MM/yyyy') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if(attendance.status === 'present')
+                            <span
+                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Hadir
+                            </span>
+                            @elseif(attendance.status === 'late')
+                            <span
+                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Terlambat
+                            </span>
+                            @elseif(attendance.status === 'absent')
+                            <span
+                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Tidak Hadir
+                            </span>
+                            @else
+                            <span
+                                class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                Izin
+                            </span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ attendance.checkInTime ? attendance.checkInTime.toFormat('HH:mm') : '-' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <a href="{{ route('attendance.edit', { id: attendance.id }) }}"
+                                class="text-yellow-600 hover:text-yellow-900">
+                                <i data-lucide="edit" class="w-4 h-4"></i>
+                            </a>
+                            <button onclick="confirmDelete({{ attendance.id }}, '{{ attendance.student.name }}')"
+                                class="text-red-600 hover:text-red-900">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    @else
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Tidak ada data absensi
+                        </td>
+                    </tr>
+                    @endeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if(attendances.total > 0)
+        <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Menampilkan {{ attendances.firstPage }} sampai {{ attendances.lastPage }} dari {{ attendances.total
+                    }} data
+                </div>
+                <div class="flex space-x-2">
+                    @if(attendances.hasPages)
+                    @if(attendances.currentPage > 1)
+                    <a href="{{ attendances.getUrlFor(attendances.currentPage - 1) }}"
+                        class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Sebelumnya
+                    </a>
+                    @endif
+
+                    @if(attendances.hasMorePages)
+                    <a href="{{ attendances.getUrlFor(attendances.currentPage + 1) }}"
+                        class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Selanjutnya
+                    </a>
+                    @endif
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+
+<script>
+async function confirmDelete(attendanceId, studentName) {
+    customAlert.confirm(
+        `Apakah Anda yakin ingin menghapus data absensi <strong>${studentName}</strong>?`,
+        async function () {
+            try {
+                const response = await fetch(`/attendance/${attendanceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    customAlert.success('Data absensi berhasil dihapus!');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    customAlert.error('Gagal menghapus data absensi');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } catch (error) {
+                customAlert.error('Terjadi kesalahan saat menghapus data');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        },
+        'Konfirmasi Hapus',
+        'Ya, Hapus',
+        'Batal'
+    );
+}
+</script>
+@end
+
+@end

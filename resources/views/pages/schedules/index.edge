@@ -1,0 +1,257 @@
+@layout.app({
+    title: 'Manajemen Jadwal',
+    description: 'Halaman untuk mengelola jadwal pelajaran.',
+    keywords: 'jadwal, pelajaran, sekolah',
+    active: 'schedules',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Jadwal', url: route('schedules.index') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Manajemen Jadwal</h2>
+                <p class="mt-1 text-sm text-gray-600">Kelola jadwal pelajaran sekolah</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('schedules.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                    Tambah Jadwal
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="class" class="block text-sm font-medium text-gray-700">Kelas</label>
+                    <select name="class" id="class" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Kelas</option>
+                        @each(classItem in classes)
+                            <option value="{{ classItem.id }}" {{ classFilter == classItem.id ? 'selected' : '' }}>
+                                {{ classItem.name }}
+                            </option>
+                        @endeach
+                    </select>
+                </div>
+
+                <div>
+                    <label for="day" class="block text-sm font-medium text-gray-700">Hari</label>
+                    <select name="day" id="day" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Hari</option>
+                        <option value="1" {{ dayFilter === '1' ? 'selected' : '' }}>Senin</option>
+                        <option value="2" {{ dayFilter === '2' ? 'selected' : '' }}>Selasa</option>
+                        <option value="3" {{ dayFilter === '3' ? 'selected' : '' }}>Rabu</option>
+                        <option value="4" {{ dayFilter === '4' ? 'selected' : '' }}>Kamis</option>
+                        <option value="5" {{ dayFilter === '5' ? 'selected' : '' }}>Jumat</option>
+                        <option value="6" {{ dayFilter === '6' ? 'selected' : '' }}>Sabtu</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="teacher" class="block text-sm font-medium text-gray-700">Guru</label>
+                    <select name="teacher" id="teacher" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">Semua Guru</option>
+                        @each(teacher in teachers)
+                            <option value="{{ teacher.id }}" {{ teacherFilter == teacher.id ? 'selected' : '' }}>
+                                {{ teacher.name }}
+                            </option>
+                        @endeach
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition">
+                        <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                        Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Weekly Schedule View -->
+        @if(classFilter)
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Jadwal Mingguan</h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-6 gap-4">
+                    @each((daySchedules, dayNumber) in weeklySchedule)
+                        @if(dayNumber <= 6)
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <h4 class="font-medium text-gray-900 mb-3 text-center">
+                                @if(dayNumber == 1)
+                                    Senin
+                                @elseif(dayNumber == 2)
+                                    Selasa
+                                @elseif(dayNumber == 3)
+                                    Rabu
+                                @elseif(dayNumber == 4)
+                                    Kamis
+                                @elseif(dayNumber == 5)
+                                    Jumat
+                                @elseif(dayNumber == 6)
+                                    Sabtu
+                                @endif
+                            </h4>
+                            <div class="space-y-2">
+                                @each(schedule in daySchedules)
+                                <div class="bg-blue-50 border border-blue-200 rounded p-2 text-sm">
+                                    <div class="font-medium text-blue-900">{{ schedule.subject }}</div>
+                                    <div class="text-blue-700">{{ schedule.startTime.slice(0, 5) }} - {{ schedule.endTime.slice(0, 5) }}</div>
+                                    <div class="text-blue-600">{{ schedule.room }}</div>
+                                    <div class="text-blue-500 text-xs">{{ schedule.teacher.name }}</div>
+                                </div>
+                                @else
+                                <div class="text-gray-400 text-sm text-center py-4">
+                                    Tidak ada jadwal
+                                </div>
+                                @endeach
+                            </div>
+                        </div>
+                        @endif
+                    @endeach
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Schedule List -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Daftar Jadwal</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hari</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruang</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @each(schedule in schedules.all())
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="book-open" class="w-5 h-5 text-indigo-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ schedule.subject }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ schedule.class.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ schedule.teacher.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @if(schedule.dayOfWeek == 1)
+                                    Senin
+                                @elseif(schedule.dayOfWeek == 2)
+                                    Selasa
+                                @elseif(schedule.dayOfWeek == 3)
+                                    Rabu
+                                @elseif(schedule.dayOfWeek == 4)
+                                    Kamis
+                                @elseif(schedule.dayOfWeek == 5)
+                                    Jumat
+                                @elseif(schedule.dayOfWeek == 6)
+                                    Sabtu
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ schedule.startTime.slice(0, 5) }} - {{ schedule.endTime.slice(0, 5) }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ schedule.room }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                <a href="{{ route('schedules.show', { id: schedule.id }) }}" class="text-indigo-600 hover:text-indigo-900">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </a>
+                                <a href="{{ route('schedules.edit', { id: schedule.id }) }}" class="text-yellow-600 hover:text-yellow-900">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </a>
+                                <button onclick="confirmDelete({{ schedule.id }}, '{{ schedule.subject }}')" class="text-red-600 hover:text-red-900">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        @else
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                Tidak ada jadwal
+                            </td>
+                        </tr>
+                        @endeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if(schedules.total > 0)
+                <div class="bg-white px-4 py-3 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan {{ schedules.firstPage }} sampai {{ schedules.lastPage }} dari {{ schedules.total }} jadwal
+                        </div>
+                        <div class="flex space-x-2">
+                            @if(schedules.hasPages)
+                                @if(schedules.currentPage > 1)
+                                    <a href="{{ schedules.getUrlFor(schedules.currentPage - 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        Sebelumnya
+                                    </a>
+                                @endif
+                                
+                                @if(schedules.hasMorePages)
+                                    <a href="{{ schedules.getUrlFor(schedules.currentPage + 1) }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        Selanjutnya
+                                    </a>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <script>
+        function confirmDelete(scheduleId, subject) {
+            customAlert.confirm(
+                `Apakah Anda yakin ingin menghapus jadwal <strong>${subject}</strong>?`,
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/schedules/${scheduleId}`;
+                    form.innerHTML = `
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                    `;
+                    document.body.appendChild(form);
+                    form.submit();
+                },
+                'Konfirmasi Hapus Jadwal',
+                'Ya, Hapus',
+                'Batal'
+            );
+        }
+    </script>
+@end
+
+@end

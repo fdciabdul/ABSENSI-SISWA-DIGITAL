@@ -1,0 +1,220 @@
+@layout.app({
+    title: 'Tambah Jadwal',
+    description: 'Halaman untuk menambahkan jadwal pelajaran baru.',
+    keywords: 'tambah, jadwal, pelajaran',
+    active: 'schedules',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Jadwal', url: route('schedules.index') },
+        { name: 'Tambah Jadwal', url: route('schedules.create') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <!-- Header Section -->
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Tambah Jadwal Baru</h2>
+                <p class="mt-1 text-sm text-gray-600">Lengkapi form berikut untuk menambahkan jadwal pelajaran</p>
+            </div>
+            <a href="{{ route('schedules.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+
+        <!-- Form Section -->
+        <div class="bg-white rounded-lg shadow">
+            <form action="{{ route('schedules.store') }}" method="POST" class="p-6 space-y-6">
+                {{ csrfField() }}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Class -->
+                    <div>
+                        <label for="classId" class="block text-sm font-medium text-gray-700">
+                            Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="classId" 
+                            id="classId" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Kelas</option>
+                            @each(classItem in classes)
+                                <option value="{{ classItem.id }}">{{ classItem.name }} - Tingkat {{ classItem.gradeLevel }}</option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Teacher -->
+                    <div>
+                        <label for="teacherId" class="block text-sm font-medium text-gray-700">
+                            Guru <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="teacherId" 
+                            id="teacherId" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Guru</option>
+                            @each(teacher in teachers)
+                                <option value="{{ teacher.id }}">{{ teacher.name }} - {{ teacher.subject }}</option>
+                            @endeach
+                        </select>
+                    </div>
+
+                    <!-- Subject -->
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-gray-700">
+                            Mata Pelajaran <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="subject" 
+                            id="subject"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Matematika, Bahasa Indonesia, dll"
+                        >
+                    </div>
+
+                    <!-- Day of Week -->
+                    <div>
+                        <label for="dayOfWeek" class="block text-sm font-medium text-gray-700">
+                            Hari <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            name="dayOfWeek" 
+                            id="dayOfWeek" 
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            <option value="">Pilih Hari</option>
+                            <option value="1">Senin</option>
+                            <option value="2">Selasa</option>
+                            <option value="3">Rabu</option>
+                            <option value="4">Kamis</option>
+                            <option value="5">Jumat</option>
+                            <option value="6">Sabtu</option>
+                        </select>
+                    </div>
+
+                    <!-- Start Time -->
+                    <div>
+                        <label for="startTime" class="block text-sm font-medium text-gray-700">
+                            Waktu Mulai <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            name="startTime" 
+                            id="startTime"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- End Time -->
+                    <div>
+                        <label for="endTime" class="block text-sm font-medium text-gray-700">
+                            Waktu Selesai <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="time" 
+                            name="endTime" 
+                            id="endTime"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Room -->
+                    <div class="md:col-span-2">
+                        <label for="room" class="block text-sm font-medium text-gray-700">
+                            Ruang Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            name="room" 
+                            id="room"
+                            required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            placeholder="Ruang 101, Lab Komputer, dll"
+                        >
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{{ route('schedules.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 transition">
+                        Batal
+                    </a>
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition">
+                        <i data-lucide="save" class="w-4 h-4 mr-2"></i>
+                        Simpan Jadwal
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Card -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-400"></i>
+                </div>
+               <div class="ml-3">
+                   <h3 class="text-sm font-medium text-yellow-800">Perhatian</h3>
+                   <div class="mt-2 text-sm text-yellow-700">
+                       <ul class="list-disc list-inside space-y-1">
+                           <li>Sistem akan mengecek bentrok jadwal secara otomatis</li>
+                           <li>Pastikan waktu mulai lebih awal dari waktu selesai</li>
+                           <li>Sesuaikan mata pelajaran dengan keahlian guru</li>
+                           <li>Ruang kelas harus tersedia pada waktu yang ditentukan</li>
+                       </ul>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+
+   <script>
+       // Auto-fill subject based on teacher selection
+       document.getElementById('teacherId').addEventListener('change', function() {
+           const selectedOption = this.options[this.selectedIndex];
+           const subjectInput = document.getElementById('subject');
+           
+           if (selectedOption.value && selectedOption.text.includes(' - ')) {
+               const subject = selectedOption.text.split(' - ')[1];
+               if (!subjectInput.value) {
+                   subjectInput.value = subject;
+               }
+           }
+       });
+
+       // Validate time inputs
+       document.getElementById('endTime').addEventListener('change', function() {
+           const startTime = document.getElementById('startTime').value;
+           const endTime = this.value;
+           
+           if (startTime && endTime && startTime >= endTime) {
+               customAlert.error('Waktu selesai harus lebih lambat dari waktu mulai');
+               this.value = '';
+           }
+       });
+
+       document.getElementById('startTime').addEventListener('change', function() {
+           const startTime = this.value;
+           const endTime = document.getElementById('endTime').value;
+           
+           if (startTime && endTime && startTime >= endTime) {
+               customAlert.error('Waktu mulai harus lebih awal dari waktu selesai');
+               document.getElementById('endTime').value = '';
+           }
+       });
+   </script>
+@end
+
+@end

@@ -1,0 +1,172 @@
+@layout.app({
+    title: 'Laporan Perangkat',
+    description: 'Laporan status dan aktivitas perangkat fingerprint.',
+    keywords: 'laporan, perangkat, fingerprint, status',
+    active: 'reports',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Laporan', url: route('reports.index') },
+        { name: 'Laporan Perangkat', url: route('reports.devices') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Laporan Perangkat</h2>
+                <p class="mt-1 text-sm text-gray-600">Status dan aktivitas perangkat fingerprint</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('reports.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @each(device in devices)
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i data-lucide="smartphone" class="w-6 h-6 text-purple-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-lg font-semibold text-gray-900">{{ device.deviceName }}</h3>
+                                <p class="text-sm text-gray-500">{{ device.serialNumber }}</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col space-y-1">
+                            @if(device.isOnline)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Online
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Offline
+                                </span>
+                            @endif
+                            @if(device.isActive)
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    Tidak Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="map-pin" class="w-4 h-4 mr-2"></i>
+                            <span>{{ device.location }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="network" class="w-4 h-4 mr-2"></i>
+                            <span>{{ device.ipAddress }}:{{ device.port }}</span>
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="monitor" class="w-4 h-4 mr-2"></i>
+                            <span>{{ device.deviceModel }}</span>
+                        </div>
+                        @if(device.lastSyncAt)
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i data-lucide="clock" class="w-4 h-4 mr-2"></i>
+                            <span>Sync: {{ device.lastSyncAt.toFormat('dd/MM HH:mm') }}</span>
+                       </div>
+                       @endif
+                   </div>
+
+                   <div class="grid grid-cols-2 gap-3 mb-4">
+                       <div class="bg-blue-50 p-3 rounded-lg text-center">
+                           <div class="text-lg font-bold text-blue-600">{{ device.attendances.length }}</div>
+                           <div class="text-xs text-blue-600">Absensi Bulan Ini</div>
+                       </div>
+                       <div class="bg-orange-50 p-3 rounded-lg text-center">
+                           <div class="text-lg font-bold text-orange-600">{{ device.logs.length }}</div>
+                           <div class="text-xs text-orange-600">Log Terbaru</div>
+                       </div>
+                   </div>
+
+                   @if(device.logs.length > 0)
+                   <div class="space-y-2">
+                       <h4 class="text-sm font-medium text-gray-900">Log Aktivitas Terbaru</h4>
+                       <div class="space-y-1 max-h-24 overflow-y-auto">
+                           @each(log in device.logs.slice(0, 3))
+                           <div class="flex items-start space-x-2 text-xs">
+                               <div class="flex-shrink-0 mt-1">
+                                   @if(log.level === 'error')
+                                       <i data-lucide="alert-circle" class="w-3 h-3 text-red-500"></i>
+                                   @elseif(log.level === 'warning')
+                                       <i data-lucide="alert-triangle" class="w-3 h-3 text-yellow-500"></i>
+                                   @elseif(log.level === 'info')
+                                       <i data-lucide="info" class="w-3 h-3 text-blue-500"></i>
+                                   @else
+                                       <i data-lucide="bug" class="w-3 h-3 text-gray-500"></i>
+                                   @endif
+                               </div>
+                               <div class="flex-1 min-w-0">
+                                   <p class="text-gray-900 truncate">{{ log.message }}</p>
+                                   <p class="text-gray-500">{{ log.createdAt.toFormat('dd/MM HH:mm') }}</p>
+                               </div>
+                           </div>
+                           @endeach
+                       </div>
+                   </div>
+                   @else
+                   <div class="text-center py-4">
+                       <i data-lucide="file-text" class="w-8 h-8 text-gray-300 mx-auto mb-2"></i>
+                       <p class="text-sm text-gray-500">Belum ada log aktivitas</p>
+                   </div>
+                   @endif
+
+                   <div class="mt-4 pt-4 border-t border-gray-200">
+                       <a href="{{ route('devices.show', { id: device.id }) }}" class="w-full bg-indigo-50 text-indigo-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-indigo-100 transition block">
+                           <i data-lucide="eye" class="w-4 h-4 inline mr-1"></i>
+                           Lihat Detail
+                       </a>
+                   </div>
+               </div>
+           </div>
+           @else
+           <div class="col-span-full text-center py-12">
+               <i data-lucide="smartphone" class="w-16 h-16 text-gray-300 mx-auto mb-4"></i>
+               <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak Ada Perangkat</h3>
+               <p class="text-gray-500">Belum ada perangkat fingerprint yang terdaftar</p>
+           </div>
+           @endeach
+       </div>
+
+       <!-- Summary Statistics -->
+       @if(devices.length > 0)
+       <div class="bg-white rounded-lg shadow p-6">
+           <h3 class="text-lg font-medium text-gray-900 mb-4">Ringkasan Status Perangkat</h3>
+           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+               <div class="text-center">
+                   <div class="text-2xl font-bold text-gray-900">{{ devices.length }}</div>
+                   <div class="text-sm text-gray-500">Total Perangkat</div>
+               </div>
+               <div class="text-center">
+                   <div class="text-2xl font-bold text-green-600">{{ devices.filter(d => d.isOnline).length }}</div>
+                   <div class="text-sm text-gray-500">Online</div>
+               </div>
+               <div class="text-center">
+                   <div class="text-2xl font-bold text-red-600">{{ devices.filter(d => !d.isOnline).length }}</div>
+                   <div class="text-sm text-gray-500">Offline</div>
+               </div>
+               <div class="text-center">
+                   <div class="text-2xl font-bold text-blue-600">{{ devices.reduce((sum, d) => sum + d.attendances.length, 0) }}</div>
+                   <div class="text-sm text-gray-500">Total Absensi Bulan Ini</div>
+               </div>
+           </div>
+       </div>
+       @endif
+   </div>
+@end
+
+@end

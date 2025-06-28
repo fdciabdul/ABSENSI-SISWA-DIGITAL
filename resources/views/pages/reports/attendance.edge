@@ -1,0 +1,235 @@
+@layout.app({
+    title: 'Laporan Absensi',
+    description: 'Laporan detail absensi siswa.',
+    keywords: 'laporan, absensi, detail, siswa',
+    active: 'reports',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Laporan', url: route('reports.index') },
+        { name: 'Laporan Absensi', url: route('reports.attendance') }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Laporan Absensi</h2>
+                <p class="mt-1 text-sm text-gray-600">Detail kehadiran siswa dengan filter dan export</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <a href="{{ route('reports.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Filter & Export</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <!-- Filter Form -->
+                    <form method="GET" action="{{ route('reports.attendance') }}">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div>
+                                <label for="start_date" class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                                <input 
+                                    type="date" 
+                                    name="start_date" 
+                                    id="start_date"
+                                    value="{{ filters.startDate }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="end_date" class="block text-sm font-medium text-gray-700">Tanggal Akhir</label>
+                                <input 
+                                    type="date" 
+                                    name="end_date" 
+                                    id="end_date"
+                                    value="{{ filters.endDate }}"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                            </div>
+
+                            <div>
+                                <label for="class_id" class="block text-sm font-medium text-gray-700">Kelas</label>
+                                <select name="class_id" id="class_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">Semua Kelas</option>
+                                    @each(classItem in classes)
+                                        <option value="{{ classItem.id }}" {{ filters.classId == classItem.id ? 'selected' : '' }}>{{ classItem.name }}</option>
+                                    @endeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                                <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">Semua Status</option>
+                                    <option value="present" {{ filters.status === 'present' ? 'selected' : '' }}>Hadir</option>
+                                    <option value="late" {{ filters.status === 'late' ? 'selected' : '' }}>Terlambat</option>
+                                    <option value="absent" {{ filters.status === 'absent' ? 'selected' : '' }}>Tidak Hadir</option>
+                                    <option value="excused" {{ filters.status === 'excused' ? 'selected' : '' }}>Izin</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-end">
+                                <button type="submit" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                                    <i data-lucide="search" class="w-4 h-4 inline mr-2"></i>
+                                    Filter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Export Form -->
+                    <div class="flex justify-end pt-4 border-t border-gray-200">
+                        <form method="POST" action="{{ route('reports.export.attendance') }}" class="inline">
+                            {{ csrfField() }}
+                            <input type="hidden" name="start_date" value="{{ filters.startDate }}">
+                            <input type="hidden" name="end_date" value="{{ filters.endDate }}">
+                            <input type="hidden" name="class_id" value="{{ filters.classId }}">
+                            <input type="hidden" name="status" value="{{ filters.status }}">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition">
+                                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                                Export Excel
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Data Absensi</h3>
+                <p class="text-sm text-gray-500 mt-1">
+                    Periode: {{ filters.startDate }} sampai {{ filters.endDate }}
+                    @if(filters.classId)
+                        @each(classItem in classes)
+                            @if(classItem.id == filters.classId)
+                                • Kelas: {{ classItem.name }}
+                            @endif
+                        @endeach
+                    @endif
+                    @if(filters.status)
+                        • Status: 
+                        @if(filters.status === 'present')
+                            Hadir
+                        @elseif(filters.status === 'late')
+                            Terlambat
+                        @elseif(filters.status === 'absent')
+                            Tidak Hadir
+                        @else
+                            Izin
+                        @endif
+                    @endif
+                </p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Siswa</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jam Masuk</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perangkat</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @each(attendance in attendances.all())
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ attendance.attendanceDate.toFormat('dd/MM/yyyy') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ attendance.student.name }}</div>
+                                    <div class="text-sm text-gray-500">{{ attendance.student.studentId }}</div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ attendance.student.class.name }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(attendance.status === 'present')
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Hadir
+                                    </span>
+                                @elseif(attendance.status === 'late')
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Terlambat
+                                    </span>
+                                @elseif(attendance.status === 'absent')
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Tidak Hadir
+                                    </span>
+                                @else
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Izin
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                @if(attendance.checkInTime)
+                                    {{ attendance.checkInTime.toFormat('HH:mm:ss') }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @if(attendance.device)
+                                    {{ attendance.device.deviceName }}
+                                @else
+                                    Manual Entry
+                                @endif
+                            </td>
+                        </tr>
+                        @else
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                <i data-lucide="search-x" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                                <p class="text-lg font-medium">Tidak ada data absensi</p>
+                                <p class="text-sm">Coba ubah filter pencarian Anda</p>
+                            </td>
+                        </tr>
+                        @endeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if(attendances.total > 0)
+                <div class="bg-white px-6 py-3 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-gray-700">
+                            Menampilkan {{ attendances.firstPage }} sampai {{ attendances.lastPage }} dari {{ attendances.total }} data
+                        </div>
+                        <div class="flex space-x-2">
+                            @if(attendances.hasPages)
+                                @if(attendances.currentPage > 1)
+                                    <a href="{{ attendances.getUrlFor(attendances.currentPage - 1) }}&start_date={{ filters.startDate }}&end_date={{ filters.endDate }}&class_id={{ filters.classId }}&status={{ filters.status }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        Sebelumnya
+                                    </a>
+                                @endif
+                                
+                                @if(attendances.hasMorePages)
+                                    <a href="{{ attendances.getUrlFor(attendances.currentPage + 1) }}&start_date={{ filters.startDate }}&end_date={{ filters.endDate }}&class_id={{ filters.classId }}&status={{ filters.status }}" class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                                        Selanjutnya
+                                    </a>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>
+@end
+
+@end

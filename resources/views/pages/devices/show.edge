@@ -1,0 +1,267 @@
+@layout.app({
+    title: `Detail Perangkat ${device.deviceName}`,
+    description: `Halaman detail perangkat ${device.deviceName}.`,
+    keywords: 'perangkat, fingerprint, detail, manajemen',
+    active: 'devices',
+    breadcrumb: [
+        { name: 'Dashboard', url: route('dashboard') },
+        { name: 'Manajemen Perangkat', url: route('devices.index') },
+        { name: device.deviceName, url: route('devices.show', { id: device.id }) }
+    ]
+})
+
+@slot('content')
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Detail Perangkat {{ device.deviceName }}</h2>
+                <p class="mt-1 text-sm text-gray-600">Informasi lengkap dan kontrol perangkat fingerprint</p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                <a href="{{ route('devices.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Kembali
+                </a>
+                <a href="{{ route('devices.edit', { id: device.id }) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 transition">
+                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                    Edit Perangkat
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="smartphone" class="w-10 h-10 text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">{{ device.deviceName }}</h3>
+                        <p class="text-gray-500">{{ device.serialNumber }}</p>
+                        
+                        <div class="flex justify-center space-x-2 mt-3">
+                            @if(device.isOnline)
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                                    Online
+                                </span>
+                            @else
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">
+                                    Offline
+                                </span>
+                            @endif
+                            @if(device.isActive)
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    Tidak Aktif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mb-6">
+                        <div class="flex items-center">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Lokasi</p>
+                                <p class="font-medium">{{ device.location }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <i data-lucide="network" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">IP Address & Port</p>
+                                <p class="font-medium">{{ device.ipAddress }}:{{ device.port }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <i data-lucide="monitor" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Model</p>
+                                <p class="font-medium">{{ device.deviceModel }}</p>
+                            </div>
+                        </div>
+
+                        @if(device.firmwareVersion)
+                        <div class="flex items-center">
+                            <i data-lucide="cpu" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Firmware</p>
+                                <p class="font-medium">{{ device.firmwareVersion }}</p>
+                            </div>
+                        </div>
+                        @endif
+
+                        @if(device.lastSyncAt)
+                        <div class="flex items-center">
+                            <i data-lucide="clock" class="w-5 h-5 text-gray-400 mr-3"></i>
+                            <div>
+                                <p class="text-sm text-gray-500">Sinkronisasi Terakhir</p>
+                                <p class="font-medium">{{ device.lastSyncAt.toFormat('dd/MM/yyyy HH:mm') }}</p>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="space-y-3">
+                        <h4 class="font-medium text-gray-900">Kontrol Perangkat</h4>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            @if(device.isOnline)
+                                <form method="POST" action="{{ route('devices.disconnect', { id: device.id }) }}" class="inline">
+                                    {{ csrfField() }}
+                                    <button type="submit" class="w-full bg-red-50 text-red-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-red-100 transition">
+                                        <i data-lucide="wifi-off" class="w-4 h-4 inline mr-1"></i>
+                                        Putus
+                                    </button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('devices.connect', { id: device.id }) }}" class="inline">
+                                    {{ csrfField() }}
+                                    <button type="submit" class="w-full bg-green-50 text-green-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-green-100 transition">
+                                        <i data-lucide="wifi" class="w-4 h-4 inline mr-1"></i>
+                                        Hubungkan
+                                    </button>
+                                </form>
+                            @endif
+
+                            <form method="POST" action="{{ route('devices.syncUsers', { id: device.id }) }}" class="inline">
+                                {{ csrfField() }}
+                                <button type="submit" class="w-full bg-blue-50 text-blue-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-blue-100 transition">
+                                    <i data-lucide="users" class="w-4 h-4 inline mr-1"></i>
+                                    Sync User
+                                </button>
+                            </form>
+                        </div>
+
+                        <form method="POST" action="{{ route('devices.syncAttendance', { id: device.id }) }}" class="inline w-full">
+                            {{ csrfField() }}
+                            <button type="submit" class="w-full bg-indigo-50 text-indigo-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-indigo-100 transition">
+                                <i data-lucide="download" class="w-4 h-4 inline mr-2"></i>
+                                Ambil Data Absensi
+                            </button>
+                        </form>
+
+                        <form method="POST" action="{{ route('devices.clearLogs', { id: device.id }) }}" class="inline w-full">
+                            {{ csrfField() }}
+                            <button type="submit" onclick="return confirm('Yakin ingin menghapus semua log di perangkat? Tindakan ini tidak dapat dibatalkan.')" class="w-full bg-orange-50 text-orange-700 text-center py-2 px-3 rounded-md text-sm font-medium hover:bg-orange-100 transition">
+                                <i data-lucide="trash" class="w-4 h-4 inline mr-2"></i>
+                                Bersihkan Log Perangkat
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i data-lucide="clipboard-check" class="w-5 h-5 mr-2"></i>
+                            Absensi Terbaru ({{ device.attendances.length }})
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        @if(device.attendances.length > 0)
+                            <div class="space-y-4">
+                                @each(attendance in device.attendances)
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                            <i data-lucide="user" class="w-5 h-5 text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-gray-900">{{ attendance.student.name }}</p>
+                                            <p class="text-sm text-gray-500">{{ attendance.student.studentId }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex items-center space-x-2">
+                                            @if(attendance.status === 'present')
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Hadir
+                                                </span>
+                                            @elseif(attendance.status === 'late')
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    Terlambat
+                                                </span>
+                                            @elseif(attendance.status === 'absent')
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                    Tidak Hadir
+                                                </span>
+                                            @else
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    Izin
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if(attendance.checkInTime)
+                                        <p class="text-sm text-gray-500 mt-1">{{ attendance.checkInTime.toFormat('dd/MM HH:mm') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i data-lucide="clipboard-x" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Belum ada data absensi dari perangkat ini</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i data-lucide="activity" class="w-5 h-5 mr-2"></i>
+                            Log Aktivitas ({{ device.logs.length }})
+                        </h3>
+                    </div>
+                    <div class="p-6">
+                        @if(device.logs.length > 0)
+                            <div class="space-y-3">
+                                @each(log in device.logs)
+                                <div class="flex items-start space-x-3 p-3 {{ log.level === 'error' ? 'bg-red-50 border border-red-200' : log.level === 'warning' ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50' }} rounded-lg">
+                                    <div class="flex-shrink-0 mt-1">
+                                        @if(log.level === 'error')
+                                            <i data-lucide="alert-circle" class="w-4 h-4 text-red-500"></i>
+                                        @elseif(log.level === 'warning')
+                                            <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-500"></i>
+                                        @elseif(log.level === 'info')
+                                            <i data-lucide="info" class="w-4 h-4 text-blue-500"></i>
+                                        @else
+                                            <i data-lucide="bug" class="w-4 h-4 text-gray-500"></i>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-medium text-gray-900">{{ log.message }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">{{ log.createdAt.toFormat('dd/MM/yyyy HH:mm:ss') }}</p>
+                                        @if(log.metadata)
+                                        <details class="mt-2">
+                                            <summary class="text-xs text-gray-600 cursor-pointer hover:text-gray-800">Detail metadata</summary>
+                                            <pre class="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto">{{ JSON.stringify(log.metadata, null, 2) }}</pre>
+                                        </details>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endeach
+                            </div>
+                        @else
+                            <div class="text-center py-8">
+                                <i data-lucide="file-text" class="w-12 h-12 text-gray-300 mx-auto mb-4"></i>
+                                <p class="text-gray-500">Belum ada log aktivitas</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@end
+
+@end

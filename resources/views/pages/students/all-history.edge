@@ -1,0 +1,248 @@
+@layout.app({
+    title: `Riwayat Absensi - ${student.name}`,
+    description: 'Riwayat absensi siswa',
+    keywords: 'riwayat, absensi, siswa',
+    active: 'students'
+})
+
+@slot('content')
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">Riwayat Absensi</h2>
+            <p class="mt-1 text-sm text-gray-600">{{ student.name }} - {{ student.studentId }}</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="exportData('attendance')" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 transition">
+                <i data-lucide="download" class="w-4 h-4 mr-2"></i>
+                Export
+            </button>
+            <a href="{{ route('students.show', { id: student.id }) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                Kembali
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">{{ allStats.attendance.present }}</p>
+                <p class="text-sm text-gray-500">Hadir ({{ allStats.attendance.presentPercentage }}%)</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">{{ allStats.attendance.late }}</p>
+                <p class="text-sm text-gray-500">Terlambat</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <i data-lucide="fingerprint" class="w-6 h-6 text-blue-600"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">{{ allStats.attendance.fingerprint }}</p>
+                <p class="text-sm text-gray-500">Via Fingerprint</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center">
+            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <i data-lucide="edit" class="w-6 h-6 text-orange-600"></i>
+            </div>
+            <div class="ml-4">
+                <p class="text-2xl font-bold text-gray-900">{{ allStats.attendance.manual }}</p>
+                <p class="text-sm text-gray-500">Manual Entry</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="fingerprint" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.fingerprint }}</p>
+                    <p class="text-sm text-gray-500">Via Fingerprint</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <i data-lucide="edit" class="w-6 h-6 text-orange-600"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.manual }}</p>
+                    <p class="text-sm text-gray-500">Manual Entry</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Semua Status</option>
+                    <option value="present" {{ statusFilter === 'present' ? 'selected' : '' }}>Hadir</option>
+                    <option value="late" {{ statusFilter === 'late' ? 'selected' : '' }}>Terlambat</option>
+                    <option value="absent" {{ statusFilter === 'absent' ? 'selected' : '' }}>Tidak Hadir</option>
+                    <option value="excused" {{ statusFilter === 'excused' ? 'selected' : '' }}>Izin</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Metode</label>
+                <select name="device" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Semua Metode</option>
+                    <option value="fingerprint" {{ deviceFilter === 'fingerprint' ? 'selected' : '' }}>Fingerprint</option>
+                    <option value="manual" {{ deviceFilter === 'manual' ? 'selected' : '' }}>Manual</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Dari Tanggal</label>
+                <input type="date" name="date_from" value="{{ dateFrom }}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Sampai Tanggal</label>
+                <input type="date" name="date_to" value="{{ dateTo }}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+            </div>
+
+            <div class="flex items-end space-x-2">
+                <button type="submit" class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                    <i data-lucide="search" class="w-4 h-4 mr-2 inline"></i>
+                    Filter
+                </button>
+                <a href="/students/{{ student.id }}/attendance-history" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jam</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metode</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @each(attendance in attendances.data)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ attendance.attendanceDate.toFormat('dd/MM/yyyy') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ attendance.checkInTime ? attendance.checkInTime.toFormat('HH:mm') : '-' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(attendance.status === 'present')
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>
+                                @elseif(attendance.status === 'late')
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Terlambat</span>
+                                @elseif(attendance.status === 'absent')
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Tidak Hadir</span>
+                                @else
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Izin</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @if(attendance.isManualEntry)
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                        <i data-lucide="edit" class="w-3 h-3 mr-1"></i>
+                                        Manual
+                                    </span>
+                                @elseif(attendance.device)
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        <i data-lucide="fingerprint" class="w-3 h-3 mr-1"></i>
+                                        Fingerprint
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                                        <i data-lucide="scan-face" class="w-3 h-3 mr-1"></i>
+                                        Face
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ attendance.schedule ? attendance.schedule.subject : '-' }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ attendance.notes || '-' }}
+                            </td>
+                        </tr>
+                    @else
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                <i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 text-gray-300"></i>
+                                <p>Tidak ada data riwayat absensi</p>
+                            </td>
+                        </tr>
+                    @endeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function exportData(type) {
+    try {
+        const response = await fetch(`/students/{{ student.id }}/export?type=${type}`);
+        const data = await response.json();
+        
+        if (data.success && data.fileUrl) {
+            window.open(data.fileUrl, '_blank');
+        } else {
+            customAlert.show({
+                type: 'info',
+                title: 'Export Data',
+                message: data.message,
+                confirmText: 'OK'
+            });
+        }
+    } catch (error) {
+        customAlert.error('Gagal export data');
+    }
+}
+</script>
+@end
+
+@end
