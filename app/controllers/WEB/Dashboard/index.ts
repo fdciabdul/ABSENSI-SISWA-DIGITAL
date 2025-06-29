@@ -15,13 +15,11 @@ export default class DashboardController {
     const startOfWeek = today.startOf('week')
     const startOfMonth = today.startOf('month')
 
-    // Basic Stats
     const totalStudents = await Student.query().where('isActive', true).count('* as total')
     const totalClasses = await Class.query().where('isActive', true).count('* as total')
     const totalTeachers = await Teacher.query().where('isActive', true).count('* as total')
     const totalDevices = await FingerprintDevice.query().where('isActive', true).count('* as total')
 
-    // Today's Attendance
     const todayAttendance = await Attendance.query()
       .whereBetween('attendanceDate', [startOfDay.toSQL(), today.endOf('day').toSQL()])
       .count('* as total')

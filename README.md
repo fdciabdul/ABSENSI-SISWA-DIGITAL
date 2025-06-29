@@ -1,5 +1,9 @@
 # ABSENSI SISWA DIGITAL
 
+<div align="center">
+
+</div>
+
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
 ![AdonisJS](https://img.shields.io/badge/AdonisJS-6.x-blueviolet.svg)
@@ -27,23 +31,7 @@
 - **Statistik Real-time** - Tingkat kehadiran dan tren bulanan
 - **Filter Lanjutan** - Pencarian berdasarkan tanggal, kelas, dan status
 
-## 🚀 Demo
 
-![Dashboard Preview](https://via.placeholder.com/800x400?text=Dashboard+Preview)
-
-**Live Demo:** [https://demo-absensi.example.com](https://demo-absensi.example.com)
-- Username: `admin@demo.com`
-- Password: `password123`
-
-## 🛠️ Teknologi yang Digunakan
-
-- **Backend:** AdonisJS 6.x (Node.js Framework)
-- **Database:** MySQL 8.0+
-- **Frontend:** TailwindCSS + Alpine.js
-- **Charts:** ApexCharts.js
-- **Face Recognition:** Face-API.js
-- **Fingerprint:** ZKTeco SDK Integration
-- **Export:** ExcelJS
 
 ## 📋 Persyaratan Sistem
 
@@ -137,27 +125,7 @@ Buka browser dan akses: `http://localhost:3333`
 - Generate laporan harian/bulanan
 - Export data ke Excel
 
-## 🔧 Konfigurasi Lanjutan
 
-### Face Recognition Setup
-```javascript
-// Konfigurasi model AI
-const MODEL_CONFIG = {
-  minConfidence: 0.7,
-  maxDistance: 0.6,
-  modelPath: '/models/'
-}
-```
-
-### Fingerprint Device Setup
-```javascript
-// Konfigurasi perangkat ZKTeco
-const DEVICE_CONFIG = {
-  ip: '192.168.1.100',
-  port: 4370,
-  timeout: 5000
-}
-```
 
 ## 🤝 Kontribusi
 
@@ -190,9 +158,9 @@ Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE unt
 ## 👨‍💻 Pengembang
 
 **Taqin** - *Full Stack Developer*
-- GitHub: [@imtaqin](https://github.com/imtaqin)
+- GitHub: [@imtaqin](https://github.com/fdciabdul)
 - Email: taqin@example.com
-- LinkedIn: [linkedin.com/in/taqin](https://linkedin.com/in/taqin)
+- LinkedIn: [linkedin.com/in/fdciabdul](https://linkedin.com/in/fdciabdul)
 
 ## ⭐ Support Proyek
 
@@ -210,37 +178,11 @@ Dukungan Anda sangat berarti untuk pengembangan proyek ini! Setiap donasi akan d
 
 ### 🎯 Cara Berdonasi
 
-#### 💳 Transfer Bank
 - **Bank BRI:** 227401035133504
-
-
-
-
-#### 🪙 Cryptocurrency
 - **Saweria:** `https://saweria.co/fdciabdul`
 
 
 
-### 🏆 Donatur Terbaik
-
-| 👑 Gold Sponsors | 🥈 Silver Sponsors | 🥉 Bronze Sponsors |
-|:---:|:---:|:---:|
-| *Coming Soon* | *Coming Soon* | *Coming Soon* |
-
-### 💌 Terima Kasih
-
-**Donasi minimum untuk mendapat badge:**
-- 🥉 **Bronze Sponsor:** Rp 50,000+
-- 🥈 **Silver Sponsor:** Rp 250,000+
-- 👑 **Gold Sponsor:** Rp 1,000,000+
-
-Semua donatur akan mendapat:
-- ✅ Nama di README (jika bersedia)
-- ✅ Badge khusus di GitHub
-- ✅ Access early ke fitur beta
-- ✅ Priority support
-
----
 
 **Catatan:** Proyek ini adalah open-source dan gratis untuk digunakan. Donasi bersifat sukarela dan tidak ada kewajiban untuk berdonasi dalam menggunakan software ini.
 

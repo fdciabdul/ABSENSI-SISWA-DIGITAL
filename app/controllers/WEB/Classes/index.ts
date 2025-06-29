@@ -127,7 +127,6 @@ export default class ClassesController {
     try {
       const classData = await Class.findOrFail(params.id)
       
-      // Check if class has students
       await classData.load('students')
       if (classData.students.length > 0) {
         session.flash('error', 'Tidak dapat menghapus kelas yang masih memiliki siswa')

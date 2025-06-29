@@ -6,57 +6,55 @@ import Schedule from '#models/schedule'
 import { DateTime } from 'luxon'
 
 export default class AttendanceController {
- async index({ view, request }: HttpContext) {
-  const page = request.input('page', 1)
-  const date = request.input('date', '')
-  const classFilter = request.input('class', '')
-  const status = request.input('status', '')
+    async index({ view, request }: HttpContext) {
+        const page = request.input('page', 1)
+        const date = request.input('date', '')
+        const classFilter = request.input('class', '')
+        const status = request.input('status', '')
 
-  let query = Attendance.query()
-    .preload('student', (studentQuery) => {
-      studentQuery.preload('class')
-    })
-    .preload('schedule', (scheduleQuery) => {
-      scheduleQuery.preload('class')
-    })
+        let query = Attendance.query()
+            .preload('student', (studentQuery) => {
+                studentQuery.preload('class')
+            })
+            .preload('schedule', (scheduleQuery) => {
+                scheduleQuery.preload('class')
+            })
 
-  // Only apply date filter if date is provided and not empty
-  if (date && date.trim() !== '') {
-    console.log('Filtering by date:', date)
-    query = query.whereRaw('DATE(attendance_date) = ?', [date])
-  }
+     
+        if (date && date.trim() !== '') {
+            console.log('Filtering by date:', date)
+            query = query.whereRaw('DATE(attendance_date) = ?', [date])
+        }
 
-  if (classFilter) {
-    query = query.whereHas('student', (studentQuery) => {
-      studentQuery.where('classId', classFilter)
-    })
-  }
+        if (classFilter) {
+            query = query.whereHas('student', (studentQuery) => {
+                studentQuery.where('classId', classFilter)
+            })
+        }
 
-  if (status) {
-    query = query.where('status', status)
-  }
+        if (status) {
+            query = query.where('status', status)
+        }
 
-  const attendances = await query
-    .orderBy('attendanceDate', 'desc')
-    .orderBy('createdAt', 'desc')
-    .paginate(page, 25)
+        const attendances = await query
+            .orderBy('attendanceDate', 'desc')
+            .orderBy('createdAt', 'desc')
+            .paginate(page, 25)
 
-  const classes = await Class.query()
-    .where('isActive', true)
-    .orderBy('name', 'asc')
+        const classes = await Class.query()
+            .where('isActive', true)
+            .orderBy('name', 'asc')
 
-  // Debug info
-  console.log('Query params:', { date, classFilter, status })
-  console.log('Total attendances found:', attendances.total)
 
-  return view.render('pages/attendance/index', {
-    attendances,
-    classes,
-    date: date || DateTime.now().toFormat('yyyy-MM-dd'),
-    classFilter,
-    status
-  })
-}
+    
+        return view.render('pages/attendance/index', {
+            attendances,
+            classes,
+            date: date || DateTime.now().toFormat('yyyy-MM-dd'),
+            classFilter,
+            status
+        })
+    }
 
     async create({ view }: HttpContext) {
         const classes = await Class.query()
