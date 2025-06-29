@@ -1,7 +1,8 @@
 # ABSENSI SISWA DIGITAL
 
 <div align="center">
-
+  <h3>Sistem Absensi Digital Modern untuk Sekolah</h3>
+  <p>Solusi lengkap untuk mengelola kehadiran siswa dengan teknologi Fingerprint dan Face Recognition</p>
 </div>
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
@@ -9,38 +10,66 @@
 ![AdonisJS](https://img.shields.io/badge/AdonisJS-6.x-blueviolet.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)
 
-**Sistem Absensi Digital Modern untuk Sekolah** - Solusi lengkap untuk mengelola kehadiran siswa dengan teknologi Fingerprint dan Face Recognition.
+## Fitur Utama
 
-## ✨ Fitur Utama
-
-### 🎯 Sistem Absensi Multi-Platform
+### Sistem Absensi Multi-Platform
 - **Absensi Manual** - Input kehadiran secara manual oleh admin/guru
 - **Fingerprint Recognition** - Integrasi dengan perangkat fingerprint ZKTeco
 - **Face Recognition** - Teknologi pengenalan wajah berbasis AI
 - **Real-time Monitoring** - Pantau kehadiran siswa secara langsung
 
-### 📊 Manajemen Data Komprehensif
+### Manajemen Data Komprehensif
 - **Data Siswa** - Kelola informasi lengkap siswa dan kelas
 - **Data Guru** - Manajemen guru dan mata pelajaran
 - **Kelas & Jadwal** - Organisasi kelas dan penjadwalan pelajaran
 - **Perangkat** - Monitoring dan kontrol perangkat fingerprint
 
-### 📈 Laporan & Analitik
+### Laporan & Analitik
 - **Dashboard Interaktif** - Visualisasi data dengan chart dinamis
 - **Laporan Detail** - Export ke Excel dengan format profesional
 - **Statistik Real-time** - Tingkat kehadiran dan tren bulanan
 - **Filter Lanjutan** - Pencarian berdasarkan tanggal, kelas, dan status
 
+## Screenshots
 
+### Dashboard Utama
+![Dashboard](screenshot/dashboard.png)
 
-## 📋 Persyaratan Sistem
+### Manajemen Data Siswa
+![Data Siswa](screenshot/data_siswa.png)
+
+### Sistem Absensi Manual
+![Absensi Manual](screenshot/absensi_manual.png)
+
+### Face Recognition
+![Face Recognition](screenshot/face_recog.png)
+
+### Manajemen Guru
+![Data Guru](screenshot/gruu.png)
+
+### Manajemen Kelas
+![Kelas](screenshot/kelas.png)
+
+### Penjadwalan
+![Jadwal](screenshot/jadwal.png)
+
+### Monitoring Perangkat
+![Perangkat](screenshot/perangkat.png)
+
+### Laporan Kehadiran
+![Reports](screenshot/reports.png)
+
+### Face Recognition Software
+![Face Recognition Software](screenshot/face%20recognition%20software.png)
+
+## Persyaratan Sistem
 
 - Node.js 18 atau lebih tinggi
 - MySQL 8.0 atau lebih tinggi
 - NPM atau Yarn
 - Git
 
-## ⚡ Instalasi Cepat
+## Instalasi
 
 ### 1. Clone Repository
 ```bash
@@ -69,13 +98,8 @@ DB_DATABASE=absensi_siswa
 
 ### 4. Setup Database
 ```bash
-# Buat database
 mysql -u root -p -e "CREATE DATABASE absensi_siswa"
-
-# Jalankan migrasi
 node ace migration:run
-
-# Seeder data awal (opsional)
 npm run seed
 ```
 
@@ -85,9 +109,9 @@ node ace generate:key
 npm run dev
 ```
 
-Buka browser dan akses: `http://localhost:3333`
+Akses aplikasi di: `http://localhost:3333`
 
-## 📖 Dokumentasi
+## Dokumentasi
 
 ### Struktur Proyek
 ```
@@ -104,98 +128,88 @@ Buka browser dan akses: `http://localhost:3333`
 └── config/                # Konfigurasi aplikasi
 ```
 
-### Penggunaan Dasar
+### Penggunaan
 
-#### 1. Login Admin
-- Akses halaman login
-- Gunakan kredensial admin default atau buat user baru
+#### 1. Akses Sistem
+- Login menggunakan kredensial admin
+- Dashboard menampilkan ringkasan kehadiran real-time
 
 #### 2. Manajemen Siswa
-- Tambah data siswa baru
-- Upload foto untuk face recognition
-- Assign ke kelas yang sesuai
+- Tambah data siswa dengan informasi lengkap
+- Upload foto untuk sistem face recognition
+- Assign siswa ke kelas yang sesuai
 
-#### 3. Setup Perangkat Fingerprint
-- Konfigurasi IP address perangkat
-- Test koneksi perangkat
-- Sinkronisasi data siswa
+#### 3. Konfigurasi Perangkat
+- Setup IP address perangkat fingerprint
+- Test koneksi dan sinkronisasi data
+- Monitor status perangkat secara real-time
 
-#### 4. Monitoring Absensi
-- Lihat dashboard real-time
-- Generate laporan harian/bulanan
-- Export data ke Excel
+#### 4. Laporan dan Analitik
+- Generate laporan harian, mingguan, atau bulanan
+- Export data ke format Excel
+- Analisis tren kehadiran dengan visualisasi chart
 
+## Teknologi yang Digunakan
 
+- **Backend**: AdonisJS 6.x (Node.js Framework)
+- **Database**: MySQL 8.0+
+- **Frontend**: Edge.js Template Engine
+- **Authentication**: AdonisJS Auth
+- **Face Recognition**: AI-based facial recognition
+- **Hardware Integration**: ZKTeco Fingerprint Devices
 
-## 🤝 Kontribusi
+## Kontribusi
 
-Kami sangat menghargai kontribusi dari komunitas! Berikut cara berkontribusi:
+Kontribusi sangat diterima! Silakan ikuti langkah berikut:
 
-1. **Fork** repository ini
-2. **Buat branch** untuk fitur baru (`git checkout -b fitur-baru`)
-3. **Commit** perubahan (`git commit -am 'Menambahkan fitur baru'`)
-4. **Push** ke branch (`git push origin fitur-baru`)
-5. **Submit Pull Request**
+1. Fork repository ini
+2. Buat branch untuk fitur baru (`git checkout -b feature/new-feature`)
+3. Commit perubahan (`git commit -m 'Add new feature'`)
+4. Push ke branch (`git push origin feature/new-feature`)
+5. Submit Pull Request
 
-### Guidelines Kontribusi
-- Ikuti coding style yang ada
+### Guidelines
+- Ikuti coding standards yang ada
 - Tambahkan test untuk fitur baru
 - Update dokumentasi jika diperlukan
-- Gunakan commit message yang descriptive
+- Gunakan commit message yang deskriptif
 
-## 🐛 Melaporkan Bug
+## Melaporkan Issues
 
-Jika menemukan bug, silakan buat [issue baru](https://github.com/imtaqin/ABSENSI-SISWA-DIGITAL/issues) dengan informasi:
-- Deskripsi bug yang jelas
-- Langkah untuk mereproduksi
+Jika menemukan bug atau memiliki saran, silakan buat [issue baru](https://github.com/imtaqin/ABSENSI-SISWA-DIGITAL/issues) dengan informasi:
+- Deskripsi masalah yang jelas
+- Langkah reproduksi bug
 - Screenshot (jika ada)
-- Environment details
+- Informasi environment
 
-## 📜 Lisensi
+## Lisensi
 
-Proyek ini dilisensikan di bawah [MIT License](LICENSE) - lihat file LICENSE untuk detail lengkap.
+Proyek ini dilisensikan di bawah [MIT License](LICENSE).
 
-## 👨‍💻 Pengembang
+## Pengembang
 
-**Taqin** - *Full Stack Developer*
+**Taqin**
 - GitHub: [@imtaqin](https://github.com/fdciabdul)
-- Email: taqin@example.com
+- Email: cp@imtaqin.id
 - LinkedIn: [linkedin.com/in/fdciabdul](https://linkedin.com/in/fdciabdul)
 
-## ⭐ Support Proyek
+## Support
 
-Jika proyek ini membantu Anda, berikan ⭐ di GitHub!
+Jika proyek ini membantu Anda, berikan star di GitHub dan bagikan ke komunitas!
 
----
+### Donasi
 
-## 💝 Donasi
-
-Dukungan Anda sangat berarti untuk pengembangan proyek ini! Setiap donasi akan digunakan untuk:
-- Maintenance server demo
-- Pengembangan fitur baru
-- Improvement dokumentasi
-- Dukungan komunitas
-
-### 🎯 Cara Berdonasi
-
+Dukungan finansial membantu pengembangan berkelanjutan:
 - **Bank BRI:** 227401035133504
-- **Saweria:** `https://saweria.co/fdciabdul`
-
-
-
-
-**Catatan:** Proyek ini adalah open-source dan gratis untuk digunakan. Donasi bersifat sukarela dan tidak ada kewajiban untuk berdonasi dalam menggunakan software ini.
+- **Saweria:** https://saweria.co/fdciabdul
 
 ---
 
 <div align="center">
 
-**[⬆ Kembali ke Atas](#absensi-siswa-digital)**
-
-Made with ❤️ by **Taqin**
+**Made with dedication by Taqin**
 
 ![GitHub stars](https://img.shields.io/github/stars/imtaqin/ABSENSI-SISWA-DIGITAL?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/imtaqin/ABSENSI-SISWA-DIGITAL?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/imtaqin/ABSENSI-SISWA-DIGITAL?style=social)
 
 </div>
