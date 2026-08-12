@@ -174,20 +174,32 @@ export default class AttendanceController {
 
             const parsedData = JSON.parse(attendanceData)
             let created = 0
+            let skipped = 0
 
             for (const item of parsedData) {
-                await Attendance.create({
-                    studentId: item.studentId,
-                    status: item.status,
-                    attendanceDate: DateTime.fromFormat(attendanceDate, 'yyyy-MM-dd'),
-                    checkInTime: item.checkInTime ? DateTime.fromISO(item.checkInTime) : null,
-                    notes: item.notes || null,
-                    isManualEntry: true
-                })
-                created++
+                try {
+                    await Attendance.create({
+                        studentId: item.studentId,
+                        status: item.status,
+                        attendanceDate: DateTime.fromFormat(attendanceDate, 'yyyy-MM-dd'),
+                        checkInTime: item.checkInTime ? DateTime.fromISO(item.checkInTime) : null,
+                        notes: item.notes || null,
+                        isManualEntry: true
+                    })
+                    created++
+                } catch (createError) {
+                    // Skip duplicates/invalid rows instead of failing the whole batch
+                    console.error('Bulk attendance create error:', createError)
+                    skipped++
+                }
             }
 
-            session.flash('success', `Berhasil menyimpan ${created} data absensi`)
+            if (created === 0) {
+                session.flash('error', 'Gagal menyimpan data absensi. Semua data duplikat atau tidak valid.')
+                return response.redirect().back()
+            }
+
+            session.flash('success', `Berhasil menyimpan ${created} data absensi${skipped > 0 ? ` (${skipped} dilewati karena duplikat/tidak valid)` : ''}`)
             return response.redirect().toRoute('attendance.index')
         } catch (error) {
             session.flash('error', 'Gagal menyimpan data absensi')

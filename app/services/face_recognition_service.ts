@@ -1,11 +1,11 @@
 
-import sharp from 'sharp'
 import * as faceapi from 'face-api.js'
 import { Canvas, Image, ImageData, createCanvas, loadImage } from 'canvas'
 import Student from '#models/student'
 import FaceData from '#models/face_data'
 import Attendance from '#models/attendance'
 import { DateTime } from 'luxon'
+import app from '@adonisjs/core/services/app'
 
 // Polyfill for face-api.js
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData })
@@ -17,10 +17,12 @@ export default class FaceRecognitionService {
   async initialize() {
     if (this.isInitialized) return
 
-    // Load face-api.js models
-    await faceapi.nets.ssdMobilenetv1.loadFromUri('/models')
-    await faceapi.nets.faceLandmark68Net.loadFromUri('/models')
-    await faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+    // Load face-api.js models from disk (loadFromUri only works in the browser).
+    // The face-api.js model weight files must be placed in public/models.
+    const modelsPath = app.makePath('public/models')
+    await faceapi.nets.ssdMobilenetv1.loadFromDisk(modelsPath)
+    await faceapi.nets.faceLandmark68Net.loadFromDisk(modelsPath)
+    await faceapi.nets.faceRecognitionNet.loadFromDisk(modelsPath)
     
     await this.loadStoredFaces()
     this.isInitialized = true
@@ -142,8 +144,8 @@ export default class FaceRecognitionService {
     // Check if already recorded today
     const existingAttendance = await Attendance.query()
       .where('studentId', recognition.studentId)
-      .where('attendanceDate', '>=', today.toSQL())
-      .where('attendanceDate', '<', today.plus({ days: 1 }).toSQL())
+      .where('attendanceDate', '>=', today.toSQLDate())
+      .where('attendanceDate', '<', today.plus({ days: 1 }).toSQLDate())
       .first()
 
     if (existingAttendance) {
@@ -162,20 +164,28 @@ export default class FaceRecognitionService {
     const now = DateTime.now()
     const status = this.determineStatus(now)
 
-    const attendance = await Attendance.create({
-      studentId: recognition.studentId,
-      deviceId,
-      status,
-      checkInTime: now,
-      attendanceDate: today,
-      isManualEntry: false,
-      notes: `Face Recognition (${recognition.confidence.toFixed(1)}% confidence)`
-    })
+    try {
+      const attendance = await Attendance.create({
+        studentId: recognition.studentId,
+        deviceId,
+        status,
+        checkInTime: now,
+        attendanceDate: today,
+        isManualEntry: false,
+        notes: `Face Recognition (${recognition.confidence.toFixed(1)}% confidence)`
+      })
 
-    return {
-      success: true,
-      message: `Selamat datang, ${recognition.student?.name}! Absensi tercatat (${status}).`,
-      attendance
+      return {
+        success: true,
+        message: `Selamat datang, ${recognition.student?.name}! Absensi tercatat (${status}).`,
+        attendance
+      }
+    } catch (error) {
+      console.error('Error recording attendance:', error)
+      return {
+        success: false,
+        message: 'Gagal mencatat absensi. Silakan coba lagi.'
+      }
     }
   }
 
@@ -196,7 +206,7 @@ export default class FaceRecognitionService {
     }
   }
 
-  private determineStatus(time: DateTime): string {
+  private determineStatus(time: DateTime): 'present' | 'late' {
     const hour = time.hour
     const minute = time.minute
 

@@ -13,7 +13,7 @@ export default class Attendance extends BaseModel {
   declare studentId: number
 
   @column()
-  declare scheduleId: number
+  declare scheduleId: number | null
 
   @column()
   declare deviceId: number | null

@@ -1,10 +1,11 @@
-//@ts-nocheck
+// @ts-expect-error zklib-js ships no type declarations
 import ZKLib from 'zklib-js'
 import FingerprintDevice from '#models/fingerprint_device'
 import Student from '#models/student'
 import Attendance from '#models/attendance'
 import DeviceLog from '#models/device_log'
 import { DateTime } from 'luxon'
+import env from '#start/env'
 
 export default class FingerprintService {
   private zkInstance: any
@@ -23,7 +24,7 @@ export default class FingerprintService {
       return true
     } catch (error) {
       await this.updateDeviceStatus(false)
-      await this.logActivity('error', `Connection failed: ${error.message}`)
+      await this.logActivity('error', `Connection failed: ${this.errorMessage(error)}`)
       return false
     }
   }
@@ -34,7 +35,7 @@ export default class FingerprintService {
       await this.updateDeviceStatus(false)
       await this.logActivity('info', 'Device disconnected')
     } catch (error) {
-      await this.logActivity('error', `Disconnect failed: ${error.message}`)
+      await this.logActivity('error', `Disconnect failed: ${this.errorMessage(error)}`)
     }
   }
 
@@ -44,7 +45,7 @@ export default class FingerprintService {
       await this.logActivity('info', 'Device info retrieved', info)
       return info
     } catch (error) {
-      await this.logActivity('error', `Failed to get device info: ${error.message}`)
+      await this.logActivity('error', `Failed to get device info: ${this.errorMessage(error)}`)
       throw error
     }
   }
@@ -61,7 +62,7 @@ export default class FingerprintService {
             student.id,
             student.studentId,
             student.name,
-            '123456', // default password
+            env.get('DEVICE_USER_PASSWORD'), // default password
             0, // role
             0  // card number
           )
@@ -70,7 +71,7 @@ export default class FingerprintService {
 
       await this.logActivity('info', `Synced ${students.length} users to device`)
     } catch (error) {
-      await this.logActivity('error', `User sync failed: ${error.message}`)
+      await this.logActivity('error', `User sync failed: ${this.errorMessage(error)}`)
       throw error
     }
   }
@@ -81,7 +82,7 @@ export default class FingerprintService {
       await this.logActivity('info', `Retrieved ${logs.length} attendance logs`)
       return logs
     } catch (error) {
-      await this.logActivity('error', `Failed to get attendance logs: ${error.message}`)
+      await this.logActivity('error', `Failed to get attendance logs: ${this.errorMessage(error)}`)
       throw error
     }
   }
@@ -93,7 +94,7 @@ export default class FingerprintService {
       })
       await this.logActivity('info', 'Real-time monitoring started')
     } catch (error) {
-      await this.logActivity('error', `Real-time monitoring failed: ${error.message}`)
+      await this.logActivity('error', `Real-time monitoring failed: ${this.errorMessage(error)}`)
       throw error
     }
   }
@@ -116,8 +117,8 @@ export default class FingerprintService {
       // Check if attendance already exists for today
       const existingAttendance = await Attendance.query()
         .where('studentId', student.id)
-        .where('attendanceDate', '>=', today.toSQL())
-        .where('attendanceDate', '<', today.plus({ days: 1 }).toSQL())
+        .where('attendanceDate', '>=', today.toSQLDate())
+        .where('attendanceDate', '<', today.plus({ days: 1 }).toSQLDate())
         .first()
 
       if (existingAttendance) {
@@ -126,14 +127,19 @@ export default class FingerprintService {
         await existingAttendance.save()
       } else {
         // Create new attendance record
-        await Attendance.create({
-          studentId: student.id,
-          deviceId: this.device.id,
-          status: this.determineAttendanceStatus(attendanceDate),
-          checkInTime: attendanceDate,
-          attendanceDate: today,
-          isManualEntry: false
-        })
+        try {
+          await Attendance.create({
+            studentId: student.id,
+            deviceId: this.device.id,
+            status: this.determineAttendanceStatus(attendanceDate),
+            checkInTime: attendanceDate,
+            attendanceDate: today,
+            isManualEntry: false
+          })
+        } catch (error) {
+          await this.logActivity('error', `Failed to record attendance: ${this.errorMessage(error)}`)
+          return
+        }
       }
 
       await this.logActivity('info', `Attendance recorded for ${student.name}`, {
@@ -142,11 +148,11 @@ export default class FingerprintService {
       })
 
     } catch (error) {
-      await this.logActivity('error', `Failed to process attendance: ${error.message}`)
+      await this.logActivity('error', `Failed to process attendance: ${this.errorMessage(error)}`)
     }
   }
 
-  private determineAttendanceStatus(checkInTime: DateTime): string {
+  private determineAttendanceStatus(checkInTime: DateTime): 'present' | 'late' {
     const hour = checkInTime.hour
     const minute = checkInTime.minute
 
@@ -167,7 +173,7 @@ export default class FingerprintService {
       await this.zkInstance.clearAttendanceLog()
       await this.logActivity('info', 'Attendance logs cleared from device')
     } catch (error) {
-      await this.logActivity('error', `Failed to clear logs: ${error.message}`)
+      await this.logActivity('error', `Failed to clear logs: ${this.errorMessage(error)}`)
       throw error
     }
   }
@@ -177,7 +183,7 @@ export default class FingerprintService {
       const currentTime = await this.zkInstance.getTime()
       await this.logActivity('info', `Device time: ${currentTime}`)
     } catch (error) {
-      await this.logActivity('error', `Failed to get/set device time: ${error.message}`)
+      await this.logActivity('error', `Failed to get/set device time: ${this.errorMessage(error)}`)
       throw error
     }
   }
@@ -188,7 +194,11 @@ export default class FingerprintService {
     await this.device.save()
   }
 
-  private async logActivity(level: string, message: string, metadata?: any): Promise<void> {
+  private errorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error)
+  }
+
+  private async logActivity(level: 'info' | 'warning' | 'error' | 'debug', message: string, metadata?: any): Promise<void> {
     await DeviceLog.create({
       deviceId: this.device.id,
       action: 'fingerprint_operation',

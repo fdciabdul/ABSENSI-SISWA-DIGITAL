@@ -201,21 +201,29 @@ async storeRegistrationAPI({ request, response }: HttpContext) {
       const now = DateTime.now()
       const status = this.determineStatus(now)
 
-      const attendance = await Attendance.create({
-        studentId: parseInt(studentId),
-        status,
-        checkInTime: now,
-        attendanceDate: today,
-        isManualEntry: false,
-        notes: `Face Recognition (${confidence.toFixed(1)}% confidence)`
-      })
+      try {
+        const attendance = await Attendance.create({
+          studentId: parseInt(studentId),
+          status,
+          checkInTime: now,
+          attendanceDate: today,
+          isManualEntry: false,
+          notes: `Face Recognition (${confidence.toFixed(1)}% confidence)`
+        })
 
-      return response.json({
-        success: true,
-        message: `Selamat datang, ${student.name}! Absensi tercatat (${status}).`,
-        attendance,
-        type: 'checkin'
-      })
+        return response.json({
+          success: true,
+          message: `Selamat datang, ${student.name}! Absensi tercatat (${status}).`,
+          attendance,
+          type: 'checkin'
+        })
+      } catch (createError: any) {
+        console.error('Attendance create error:', createError)
+        if (createError?.code === 'ER_DUP_ENTRY') {
+          return response.conflict({ message: 'Absensi untuk siswa ini sudah tercatat' })
+        }
+        return response.badRequest({ message: 'Gagal menyimpan data absensi. Periksa kembali data yang dikirim.' })
+      }
     } catch (error) {
       console.error('Attendance error:', error)
       return response.internalServerError({ message: 'Gagal mencatat absensi' })
@@ -251,7 +259,7 @@ async storeRegistrationAPI({ request, response }: HttpContext) {
     }
   }
 
-  private determineStatus(time: DateTime): string {
+  private determineStatus(time: DateTime): 'present' | 'late' {
     const hour = time.hour
     const minute = time.minute
 
