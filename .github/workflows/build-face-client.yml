@@ -35,6 +35,7 @@ jobs:
           --name absensi-face-client
           --collect-all customtkinter
           --collect-all mediapipe
+          --collect-data cv2
           face_recognition/main.py
 
       - name: Upload artifact

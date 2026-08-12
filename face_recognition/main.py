@@ -54,10 +54,9 @@ class SistemAbsensiModern:
         self.root.geometry("1200x800")
         self.root.minsize(1000, 700)
         
-        self.api_base_url = "http://localhost:3333"
         self.camera = None
         self.is_camera_running = False
-        
+
         # config.json lives next to the .exe when frozen (PyInstaller),
         # otherwise next to this script
         if getattr(sys, 'frozen', False):
@@ -66,10 +65,11 @@ class SistemAbsensiModern:
             base_dir = os.path.dirname(os.path.abspath(__file__))
         self.config_path = os.path.join(base_dir, 'config.json')
         self.config = self.load_config()
+        self.api_base_url = self.config.get('server_url', 'http://localhost:3333')
         self.api_key = self.config.get('api_key', '')
         self.api_headers = {'x-api-key': self.api_key}
         if not self.api_key:
-            self.log_status("⚠️ api_key kosong di config.json - request ke server akan ditolak!")
+            self.log_status("⚠️ API key belum diisi - buka Pengaturan untuk mengisinya!")
         
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
@@ -107,7 +107,8 @@ class SistemAbsensiModern:
             default_password = self.generate_random_password()
             config = {
                 'admin_password_hash': hashlib.sha256(default_password.encode()).hexdigest(),
-                'api_key': ''
+                'api_key': '',
+                'server_url': 'http://localhost:3333'
             }
             with open(self.config_path, 'w') as f:
                 json.dump(config, f, indent=2)
@@ -963,7 +964,12 @@ class SistemAbsensiModern:
         ctk.CTkLabel(server_frame, text="URL Server:").pack(anchor="w", padx=10, pady=(10, 5))
         self.server_entry = ctk.CTkEntry(server_frame, width=400)
         self.server_entry.insert(0, self.api_base_url)
-        self.server_entry.pack(padx=10, pady=(0, 10))
+        self.server_entry.pack(padx=10, pady=(0, 5))
+
+        ctk.CTkLabel(server_frame, text="API Key (x-api-key):").pack(anchor="w", padx=10, pady=(5, 5))
+        self.apikey_entry = ctk.CTkEntry(server_frame, width=400)
+        self.apikey_entry.insert(0, self.api_key)
+        self.apikey_entry.pack(padx=10, pady=(0, 10))
         
         # Pengaturan Admin
         ctk.CTkLabel(settings_frame, text="Pengaturan Admin", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(20, 5))
@@ -1004,7 +1010,12 @@ class SistemAbsensiModern:
             # Simpan pengaturan
             self.detection_confidence_threshold = int(self.confidence_slider.get())
             self.detection_cooldown = int(self.cooldown_entry.get())
-            self.api_base_url = self.server_entry.get()
+            self.api_base_url = self.server_entry.get().rstrip('/')
+            self.api_key = self.apikey_entry.get().strip()
+            self.api_headers = {'x-api-key': self.api_key}
+            self.config['server_url'] = self.api_base_url
+            self.config['api_key'] = self.api_key
+            self.save_config()
             
             new_password = self.password_entry.get()
             if new_password:
@@ -1029,6 +1040,7 @@ class SistemAbsensiModern:
         self.cooldown_entry.insert(0, "10")
         self.server_entry.delete(0, "end")
         self.server_entry.insert(0, "http://localhost:3333")
+        self.apikey_entry.delete(0, "end")
         self.password_entry.delete(0, "end")
         new_password = self.generate_random_password()
         self.config['admin_password_hash'] = hashlib.sha256(new_password.encode()).hexdigest()
