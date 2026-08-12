@@ -8,9 +8,43 @@ from PIL import Image, ImageTk
 import threading
 import time
 import hashlib
+import os
+import secrets
+import string
+
+# mediapipe opsional: jika tidak terinstall, liveness (kedipan) dinonaktifkan
+try:
+    import mediapipe as mp
+    MEDIAPIPE_AVAILABLE = True
+except ImportError:
+    mp = None
+    MEDIAPIPE_AVAILABLE = False
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
+
+# Konstanta deteksi liveness (kedipan mata / anti-spoof)
+EAR_CLOSE_THRESHOLD = 0.21   # EAR di bawah ini = mata tertutup
+EAR_OPEN_THRESHOLD = 0.25    # EAR di atas ini = mata terbuka
+LIVENESS_TIMEOUT = 4.0       # detik, batas waktu tantangan kedipan
+LIVENESS_RETRY_BACKOFF = 3.0 # detik, jeda coba lagi setelah verifikasi gagal
+
+# Indeks landmark FaceMesh untuk mata (6 titik per mata)
+LEFT_EYE_INDICES = [33, 160, 158, 133, 153, 144]
+RIGHT_EYE_INDICES = [362, 385, 387, 263, 373, 380]
+
+
+def compute_ear(landmarks, eye_indices):
+    """Eye Aspect Ratio satu mata: (||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)"""
+    p = [landmarks[i] for i in eye_indices]
+    dist = lambda a, b: ((a.x - b.x) ** 2 + (a.y - b.y) ** 2) ** 0.5
+    return (dist(p[1], p[5]) + dist(p[2], p[4])) / (2.0 * dist(p[0], p[3]))
+
+
+def average_ear(landmarks):
+    """Rata-rata EAR kedua mata dari daftar landmark FaceMesh"""
+    return (compute_ear(landmarks, LEFT_EYE_INDICES) +
+            compute_ear(landmarks, RIGHT_EYE_INDICES)) / 2.0
 
 class SistemAbsensiModern:
     def __init__(self):
@@ -22,7 +56,15 @@ class SistemAbsensiModern:
         self.api_base_url = "http://localhost:3333"
         self.camera = None
         self.is_camera_running = False
-        self.admin_password = "admin123"
+        
+        self.config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+        self.config = self.load_config()
+        self.api_key = self.config.get('api_key', '')
+        self.api_headers = {'x-api-key': self.api_key}
+        if not self.api_key:
+            self.log_status("⚠️ api_key kosong di config.json - request ke server akan ditolak!")
+        
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
         self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         
@@ -34,6 +76,13 @@ class SistemAbsensiModern:
         self.last_detection_time = {}
         self.detection_cooldown = 10
         self.detection_confidence_threshold = 75
+
+        # State liveness (kedipan mata). FaceMesh dibuat & dipakai hanya di thread deteksi.
+        self.face_mesh = None
+        self.liveness_pending = None      # dict: {'student', 'confidence', 'start_time', 'eyes_closed'}
+        self.liveness_last_attempt = {}   # student_id -> waktu percobaan gagal terakhir
+        if not MEDIAPIPE_AVAILABLE:
+            self.log_status("⚠️ mediapipe tidak terinstall - verifikasi kedipan (liveness) nonaktif, deteksi berjalan tanpa anti-spoof!")
         
         self.session_detections = 0
         self.session_attendances = 0
@@ -41,6 +90,43 @@ class SistemAbsensiModern:
         
         self.setup_ui()
         self.root.after(1000, self.initialize_data)
+    
+    def generate_random_password(self, length=12):
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(length))
+    
+    def load_config(self):
+        if not os.path.exists(self.config_path):
+            default_password = self.generate_random_password()
+            config = {
+                'admin_password_hash': hashlib.sha256(default_password.encode()).hexdigest(),
+                'api_key': ''
+            }
+            with open(self.config_path, 'w') as f:
+                json.dump(config, f, indent=2)
+            print("=" * 60)
+            print(f"PASSWORD ADMIN BARU (catat, hanya ditampilkan sekali): {default_password}")
+            print("=" * 60)
+            return config
+        
+        with open(self.config_path, 'r') as f:
+            return json.load(f)
+    
+    def save_config(self):
+        with open(self.config_path, 'w') as f:
+            json.dump(self.config, f, indent=2)
+    
+    def on_close(self):
+        self.is_camera_running = False
+        self.auto_detect_enabled = False
+        self.is_reg_camera_running = False
+        
+        if self.camera:
+            self.camera.release()
+        if getattr(self, 'reg_camera', None):
+            self.reg_camera.release()
+        
+        self.root.destroy()
     
     def setup_ui(self):
         self.root.grid_columnconfigure(1, weight=1)
@@ -73,7 +159,7 @@ class SistemAbsensiModern:
         self.register_btn = ctk.CTkButton(sidebar, text="👤 Daftar Wajah", command=self.open_registration_with_password,
                                         height=40, fg_color="green", hover_color="darkgreen")
         self.register_btn.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
-        self.settings_btn = ctk.CTkButton(sidebar, text="⚙️ Pengaturan", command=self.open_settings,
+        self.settings_btn = ctk.CTkButton(sidebar, text="⚙️ Pengaturan", command=self.open_settings_with_password,
                                 height=40, fg_color="purple", hover_color="darkviolet")
         self.settings_btn.grid(row=6, column=0, padx=20, pady=5, sticky="ew")
         
@@ -146,7 +232,7 @@ class SistemAbsensiModern:
             return False
         
         password_hash = hashlib.sha256(password.encode()).hexdigest()
-        admin_hash = hashlib.sha256(self.admin_password.encode()).hexdigest()
+        admin_hash = self.config.get('admin_password_hash', '')
         
         if password_hash == admin_hash:
             return True
@@ -158,12 +244,17 @@ class SistemAbsensiModern:
         if self.verify_admin_password():
             self.open_registration()
     
+    def open_settings_with_password(self):
+        if self.verify_admin_password():
+            self.open_settings()
+    
     def open_registration(self):
         reg_window = ctk.CTkToplevel(self.root)
         reg_window.title("Daftar Wajah Siswa")
         reg_window.geometry("800x600")
         reg_window.transient(self.root)
         reg_window.grab_set()
+        reg_window.protocol("WM_DELETE_WINDOW", lambda: self.close_registration(reg_window))
         
         reg_window.grid_columnconfigure((0, 1), weight=1)
         reg_window.grid_rowconfigure(1, weight=1)
@@ -217,6 +308,10 @@ class SistemAbsensiModern:
         self.selected_student = None
         self.filtered_students = []
     
+    def close_registration(self, window):
+        self.stop_reg_camera()
+        window.destroy()
+    
     def start_auto_detection(self):
         self.camera = cv2.VideoCapture(0)
         if not self.camera.isOpened():
@@ -242,7 +337,8 @@ class SistemAbsensiModern:
     def stop_auto_detection(self):
         self.is_camera_running = False
         self.auto_detect_enabled = False
-        
+        self.liveness_pending = None
+
         if self.camera:
             self.camera.release()
         
@@ -254,26 +350,48 @@ class SistemAbsensiModern:
         self.log_status("🛑 Deteksi dihentikan")
     
     def continuous_detection(self):
+        # FaceMesh dibuat sekali di thread ini dan hanya dipakai dari thread ini
+        if MEDIAPIPE_AVAILABLE:
+            try:
+                self.face_mesh = mp.solutions.face_mesh.FaceMesh(
+                    static_image_mode=False,
+                    max_num_faces=1,
+                    refine_landmarks=True,
+                    min_detection_confidence=0.5,
+                    min_tracking_confidence=0.5)
+            except Exception as e:
+                self.log_status(f"⚠️ Gagal inisialisasi FaceMesh: {str(e)} - liveness nonaktif")
+                self.face_mesh = None
+
         while self.is_camera_running:
             try:
                 ret, frame = self.camera.read()
                 if not ret:
                     continue
-                
+
                 frame = cv2.flip(frame, 1)
                 detection_result = self.process_frame_for_detection(frame)
-                
+
                 self.update_camera_display(frame, detection_result)
-                
+
                 if self.auto_detect_enabled and detection_result:
                     self.handle_auto_attendance(detection_result)
-                
+
+                if self.liveness_pending:
+                    self.process_liveness_frame(frame)
+
                 self.update_session_stats()
                 time.sleep(0.1)
-                
+
             except Exception as e:
                 self.log_status(f"❌ Error deteksi: {str(e)}")
                 time.sleep(1)
+
+        # Thread selesai: bersihkan FaceMesh
+        self.liveness_pending = None
+        if self.face_mesh:
+            self.face_mesh.close()
+            self.face_mesh = None
     
     def process_frame_for_detection(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -333,7 +451,12 @@ class SistemAbsensiModern:
                 self.update_detection_info("⚠️ Beberapa wajah terdeteksi")
             else:
                 self.update_detection_info("❓ Wajah tidak dikenali")
-        
+
+        # Saat menunggu kedipan, tampilkan prompt liveness (jangan ditimpa status di atas)
+        if self.liveness_pending:
+            pending_name = self.liveness_pending['student']['name']
+            self.update_detection_info(f"👁️ {pending_name} - Kedipkan mata untuk verifikasi")
+
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         img = Image.fromarray(frame_rgb)
         img = img.resize((800, 600))  # Update size for fullscreen
@@ -346,14 +469,77 @@ class SistemAbsensiModern:
         student = detection_result['student']
         student_id = student['id']
         current_time = time.time()
-        
+
+        # Cooldown setelah kehadiran tercatat
         if student_id in self.last_detection_time:
             time_since_last = current_time - self.last_detection_time[student_id]
             if time_since_last < self.detection_cooldown:
                 return
-        
-        self.last_detection_time[student_id] = current_time
-        self.record_attendance_auto(student, detection_result['confidence'])
+
+        # Fallback: tanpa liveness jika mediapipe/FaceMesh tidak tersedia
+        if self.face_mesh is None:
+            self.last_detection_time[student_id] = current_time
+            self.record_attendance_auto(student, detection_result['confidence'])
+            return
+
+        # Backoff singkat setelah verifikasi liveness gagal
+        if student_id in self.liveness_last_attempt:
+            if current_time - self.liveness_last_attempt[student_id] < LIVENESS_RETRY_BACKOFF:
+                return
+
+        # Sudah ada tantangan liveness yang sedang berjalan
+        if self.liveness_pending:
+            return
+
+        # Mulai tantangan liveness: siswa harus mengedipkan mata
+        self.liveness_pending = {
+            'student': student,
+            'confidence': detection_result['confidence'],
+            'start_time': current_time,
+            'eyes_closed': False
+        }
+        self.update_detection_info(f"👁️ {student['name']} - Kedipkan mata untuk verifikasi")
+        self.log_status(f"👁️ Verifikasi liveness: {student['name']} diminta mengedipkan mata")
+
+    def process_liveness_frame(self, frame):
+        pending = self.liveness_pending
+        if not pending:
+            return
+
+        current_time = time.time()
+        student = pending['student']
+
+        # Timeout: batalkan tantangan, wajib re-recognition sebelum coba lagi
+        if current_time - pending['start_time'] > LIVENESS_TIMEOUT:
+            self.liveness_pending = None
+            self.liveness_last_attempt[student['id']] = current_time
+            self.update_detection_info("❌ Verifikasi gagal, coba lagi")
+            self.log_status(f"❌ Verifikasi liveness timeout: {student['name']}")
+            return
+
+        try:
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = self.face_mesh.process(frame_rgb)
+        except Exception as e:
+            self.log_status(f"⚠️ Error FaceMesh: {str(e)}")
+            return
+
+        # Tidak ada landmark (mis. foto): netral, terus tunggu sampai timeout
+        if not results.multi_face_landmarks:
+            return
+
+        ear = average_ear(results.multi_face_landmarks[0].landmark)
+
+        # Mesin dua status: mata harus tertutup lalu terbuka lagi
+        if not pending['eyes_closed']:
+            if ear < EAR_CLOSE_THRESHOLD:
+                pending['eyes_closed'] = True
+        elif ear > EAR_OPEN_THRESHOLD:
+            # Kedipan terkonfirmasi: catat kehadiran
+            self.liveness_pending = None
+            self.last_detection_time[student['id']] = current_time
+            self.log_status(f"✅ Liveness terverifikasi (kedipan): {student['name']}")
+            self.record_attendance_auto(student, pending['confidence'])
     
     def record_attendance_auto(self, student_info, confidence):
         try:
@@ -363,7 +549,7 @@ class SistemAbsensiModern:
             }
             
             response = requests.post(f"{self.api_base_url}/api/face-recognition/attendance",
-                                   json=data, headers={'Content-Type': 'application/json'}, timeout=5)
+                                   json=data, headers={**self.api_headers, 'Content-Type': 'application/json'}, timeout=5)
            
             if response.status_code == 200:
                 self.session_attendances += 1
@@ -394,7 +580,7 @@ class SistemAbsensiModern:
     def load_students_for_registration(self):
         try:
             self.log_status("📥 Memuat siswa untuk pendaftaran...")
-            response = requests.get(f"{self.api_base_url}/api/face/students", timeout=10)
+            response = requests.get(f"{self.api_base_url}/api/face/students", headers=self.api_headers, timeout=10)
             
             if response.status_code == 200:
                 self.all_students = response.json()
@@ -428,8 +614,9 @@ class SistemAbsensiModern:
         filtered = []
         for student in self.all_students:
             student_text = f"{student['name']} {student['studentId']}"
-            if hasattr(student, 'class') and student.get('class'):
-                student_text += f" {student['class'].get('name', '')}"
+            student_class = student.get('class')
+            if student_class:
+                student_text += f" {student_class.get('name', '')}"
             
             if search_term in student_text.lower():
                 filtered.append(student)
@@ -557,7 +744,7 @@ class SistemAbsensiModern:
             }
             
             response = requests.post(f"{self.api_base_url}/api/face-recognition/register", 
-                                    json=data, headers={'Content-Type': 'application/json'}, timeout=15)
+                                    json=data, headers={**self.api_headers, 'Content-Type': 'application/json'}, timeout=15)
             
             if response.status_code == 200:
                 student_name = self.selected_student['name']
@@ -617,7 +804,7 @@ class SistemAbsensiModern:
     def test_connection(self):
         try:
             self.log_status("🔄 Mengecek koneksi...")
-            response = requests.get(f"{self.api_base_url}/api/face-recognition/data", timeout=5)
+            response = requests.get(f"{self.api_base_url}/api/face-recognition/data", headers=self.api_headers, timeout=5)
             
             if response.status_code == 200:
                 self.connection_status.configure(text="🟢 Terhubung", text_color="green")
@@ -637,7 +824,7 @@ class SistemAbsensiModern:
     def load_face_data(self):
         try:
             self.log_status("📥 Memuat data wajah...")
-            response = requests.get(f"{self.api_base_url}/api/face-recognition/data", timeout=10)
+            response = requests.get(f"{self.api_base_url}/api/face-recognition/data", headers=self.api_headers, timeout=10)
             
             if response.status_code == 200:
                 try:
@@ -695,7 +882,7 @@ class SistemAbsensiModern:
     def load_students(self):
         try:
             self.log_status("📥 Memuat siswa...")
-            response = requests.get(f"{self.api_base_url}/api/face/students", timeout=10)
+            response = requests.get(f"{self.api_base_url}/api/face/students", headers=self.api_headers, timeout=10)
             
             if response.status_code == 200:
                 self.all_students = response.json()
@@ -777,9 +964,8 @@ class SistemAbsensiModern:
         password_frame = ctk.CTkFrame(settings_frame)
         password_frame.pack(fill="x", padx=10, pady=5)
         
-        ctk.CTkLabel(password_frame, text="Password Admin:").pack(anchor="w", padx=10, pady=(10, 5))
+        ctk.CTkLabel(password_frame, text="Password Admin Baru (kosongkan jika tidak diubah):").pack(anchor="w", padx=10, pady=(10, 5))
         self.password_entry = ctk.CTkEntry(password_frame, show="*", width=200)
-        self.password_entry.insert(0, self.admin_password)
         self.password_entry.pack(padx=10, pady=(0, 10))
         
         # Pengaturan Tema
@@ -812,7 +998,11 @@ class SistemAbsensiModern:
             self.detection_confidence_threshold = int(self.confidence_slider.get())
             self.detection_cooldown = int(self.cooldown_entry.get())
             self.api_base_url = self.server_entry.get()
-            self.admin_password = self.password_entry.get()
+            
+            new_password = self.password_entry.get()
+            if new_password:
+                self.config['admin_password_hash'] = hashlib.sha256(new_password.encode()).hexdigest()
+                self.save_config()
             
             # Ubah tema
             ctk.set_appearance_mode(self.theme_var.get())
@@ -833,9 +1023,14 @@ class SistemAbsensiModern:
         self.server_entry.delete(0, "end")
         self.server_entry.insert(0, "http://localhost:3333")
         self.password_entry.delete(0, "end")
-        self.password_entry.insert(0, "admin123")
+        new_password = self.generate_random_password()
+        self.config['admin_password_hash'] = hashlib.sha256(new_password.encode()).hexdigest()
+        self.save_config()
+        print("=" * 60)
+        print(f"PASSWORD ADMIN BARU (catat, hanya ditampilkan sekali): {new_password}")
+        print("=" * 60)
         self.theme_var.set("Dark")
-        self.log_status("🔄 Pengaturan direset ke default")
+        self.log_status("🔄 Pengaturan direset ke default - password admin baru dicetak ke console")
     def run(self):
         self.root.mainloop()
 
