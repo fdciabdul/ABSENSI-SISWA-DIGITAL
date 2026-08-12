@@ -24,3 +24,8 @@ yarn-error.log
 # Platform specific
 .DS_Store
 /package-lock.json
+
+# Face recognition client runtime config (contains password hash + API key)
+face_recognition/config.json
+# Python
+__pycache__/

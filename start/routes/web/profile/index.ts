@@ -15,5 +15,5 @@ router.group(() => {
   router.get('/settings', [SettingsController, 'index']).as('settings.index')
   router.put('/settings', [SettingsController, 'update']).as('settings.update')
   router.get('/settings/export', [SettingsController, 'exportData']).as('settings.export')
-  router.delete('/settings/account', [SettingsController, 'deleteAccount']).as('settings.delete')
+  router.delete('/settings/account', [SettingsController, 'deleteAccount']).as('settings.delete').middleware(middleware.role(['admin']))
 }).middleware(middleware.auth())

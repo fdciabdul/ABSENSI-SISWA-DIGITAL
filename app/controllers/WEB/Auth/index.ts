@@ -13,9 +13,8 @@ export default class AuthController {
 
   async login({ request, auth, response, session }: HttpContext) {
     const { email, password } = request.only(['email', 'password'])
-    console.log('Login attempt:', { email, password })
-    
-    try {   
+
+    try {
       const user = await User.verifyCredentials(email, password)
       
       if (!user.isActive) {

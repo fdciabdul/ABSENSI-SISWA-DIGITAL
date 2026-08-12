@@ -17,6 +17,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
   LOG_LEVEL: Env.schema.string(),
+  APP_NAME: Env.schema.string.optional(),
 
   /*
   |----------------------------------------------------------
@@ -27,6 +28,13 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   /*
   |----------------------------------------------------------
+  | API key for the face recognition service
+  |----------------------------------------------------------
+  */
+  FACE_API_KEY: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
   | Variables for configuring database connection
   |----------------------------------------------------------
   */
@@ -34,5 +42,20 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_PORT: Env.schema.number(),
   DB_USER: Env.schema.string(),
   DB_PASSWORD: Env.schema.string.optional(),
-  DB_DATABASE: Env.schema.string()
+  DB_DATABASE: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Password used for the seeded users. When not set, a random
+  | password is generated and printed to the console.
+  |----------------------------------------------------------
+  */
+  SEED_ADMIN_PASSWORD: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Default password set on fingerprint device users
+  |----------------------------------------------------------
+  */
+  DEVICE_USER_PASSWORD: Env.schema.string()
 })

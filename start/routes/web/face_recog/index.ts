@@ -11,10 +11,10 @@ router.group(() => {
   router.delete('/face-recognition/:id', [FaceRecognitionController, 'deleteFaceData']).as('face-recognition.delete')
 }).middleware(middleware.auth())
 
-// API Routes (no authentication needed for Python app)
+// API Routes for the Python app (protected by API key)
 router.group(() => {
   router.get('/face-recognition/data', [FaceRecognitionController, 'getFaceData']).as('face-recognition.data')
   router.post('/face-recognition/attendance', [FaceRecognitionController, 'recordAttendance']).as('face-recognition.attendance')
   router.get('face/students', [FaceRecognitionController, 'getStudents']).as('students.face.api')
   router.post('face-recognition/register', [FaceRecognitionController, 'storeRegistrationAPI'])
-}).prefix('/api')
+}).prefix('/api').middleware(middleware.apiKey())

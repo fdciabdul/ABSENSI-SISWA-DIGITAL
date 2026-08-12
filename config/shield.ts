@@ -18,20 +18,10 @@ const shieldConfig = defineConfig({
   csrf: {
     enabled: true,
     exceptRoutes: [
-      // API routes for Python app (no CSRF needed)
+      // API routes for the Python app (protected by API key, no CSRF needed)
       '/api/face-recognition/data',
-      '/api/face-recognition/attendance', 
+      '/api/face-recognition/attendance',
       '/api/face-recognition/register',
-      '/api/students',
-      
-      // Fingerprint API routes (if you have external devices calling these)
-      '/fingerprint/*/connect',
-      '/fingerprint/*/sync-users', 
-      '/fingerprint/*/download-logs',
-      '/fingerprint/*/start-monitoring',
-      '/fingerprint/*/clear-logs',
-      '/fingerprint/enroll',
-      '/fingerprint/enrollment-status/*',
     ],
     enableXsrfCookie: false,
     methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
