@@ -9,6 +9,7 @@ import threading
 import time
 import hashlib
 import os
+import sys
 import secrets
 import string
 
@@ -57,7 +58,13 @@ class SistemAbsensiModern:
         self.camera = None
         self.is_camera_running = False
         
-        self.config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
+        # config.json lives next to the .exe when frozen (PyInstaller),
+        # otherwise next to this script
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_path = os.path.join(base_dir, 'config.json')
         self.config = self.load_config()
         self.api_key = self.config.get('api_key', '')
         self.api_headers = {'x-api-key': self.api_key}
