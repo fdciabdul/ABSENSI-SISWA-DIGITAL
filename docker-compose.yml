@@ -22,7 +22,8 @@ services:
       SEED_ADMIN_PASSWORD: "${SEED_ADMIN_PASSWORD:-}"
       DEVICE_USER_PASSWORD: "${DEVICE_USER_PASSWORD:-123456}"
       FACE_API_KEY: "${FACE_API_KEY:?Set FACE_API_KEY in .env (must match face_recognition/config.json api_key)}"
-      # Set to "true" ONCE to drop all tables + re-migrate + re-seed, then REMOVE it again
+      # One-shot: "true" wipes + re-migrates + re-seeds the DB on the NEXT boot
+      # only, then automatically disarms itself (safe to leave set)
       DB_FRESH: "${DB_FRESH:-false}"
     ports:
       - "${APP_PORT:-3333}:3333"
