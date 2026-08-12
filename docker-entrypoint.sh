@@ -29,14 +29,38 @@ done
 FRESH_MARKER=/app/data/.db_fresh_done
 JUST_FRESHED=false
 if [ "${DB_FRESH:-false}" = "true" ] && [ ! -f "$FRESH_MARKER" ]; then
-  echo "==> DB_FRESH=true (one-shot), dropping all tables and re-migrating from scratch..."
-  node ace.js migration:fresh --force
+  echo "==> DB_FRESH=true (one-shot), dropping ALL tables in ${DB_DATABASE}..."
+  # Drop every table directly — migration:fresh only touches tables it tracks,
+  # which leaves half-created leftovers behind and breaks re-migration.
+  node -e "
+    const mysql = require('mysql2/promise')
+    ;(async () => {
+      const conn = await mysql.createConnection({
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT || 3306),
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_DATABASE,
+      })
+      const [rows] = await conn.query(
+        'SELECT table_name AS t FROM information_schema.tables WHERE table_schema = ?',
+        [process.env.DB_DATABASE]
+      )
+      await conn.query('SET FOREIGN_KEY_CHECKS=0')
+      for (const row of rows) {
+        await conn.query('DROP TABLE IF EXISTS \`' + row.t + '\`')
+      }
+      await conn.query('SET FOREIGN_KEY_CHECKS=1')
+      console.log('==> Dropped ' + rows.length + ' table(s)')
+      await conn.end()
+    })().catch((err) => { console.error(err); process.exit(1) })
+  "
   touch "$FRESH_MARKER"
   JUST_FRESHED=true
-else
-  echo "==> Running database migrations..."
-  node ace.js migration:run --force
 fi
+
+echo "==> Running database migrations..."
+node ace.js migration:run --force
 
 # Seed only on first boot or right after a one-shot fresh.
 SEED_MARKER=/app/data/.db_seeded
