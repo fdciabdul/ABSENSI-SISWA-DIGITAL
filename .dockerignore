@@ -1,0 +1,12 @@
+node_modules
+build
+tmp
+.git
+uploads
+face_recognition
+screenshot
+*.md
+.env
+.env.*
+docker-compose.yml
+Dockerfile

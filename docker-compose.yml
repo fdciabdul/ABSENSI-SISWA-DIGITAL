@@ -1,0 +1,57 @@
+# Default: `docker compose up -d` starts ONLY the app and connects to the
+# database configured via .env (DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_DATABASE).
+#
+# Optional local database container (off by default, so it never burdens the
+# server unless you ask for it):
+#   docker compose --profile db up -d
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      TZ: "${TZ:-UTC}"
+      PORT: "3333"
+      HOST: "0.0.0.0"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+      APP_NAME: "${APP_NAME:-AbsensiSiswa}"
+      APP_KEY: "${APP_KEY:?Set APP_KEY in .env (generate with 'node ace generate:key')}"
+      NODE_ENV: "production"
+      SESSION_DRIVER: "cookie"
+      DB_HOST: "${DB_HOST:?Set DB_HOST in .env (your external DB host, or 'mysql' with --profile db)}"
+      DB_PORT: "${DB_PORT:-3306}"
+      DB_USER: "${DB_USER:?Set DB_USER in .env}"
+      DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
+      DB_DATABASE: "${DB_DATABASE:?Set DB_DATABASE in .env}"
+      SEED_ADMIN_PASSWORD: "${SEED_ADMIN_PASSWORD:-}"
+      DEVICE_USER_PASSWORD: "${DEVICE_USER_PASSWORD:-123456}"
+      FACE_API_KEY: "${FACE_API_KEY:?Set FACE_API_KEY in .env (must match face_recognition/config.json api_key)}"
+    ports:
+      - "${APP_PORT:-3333}:3333"
+    volumes:
+      # Seed marker: presence of this volume's marker file is what makes
+      # "seed only on first boot" work. Delete it to re-seed.
+      - seed-marker:/app/data
+      # Persist uploaded avatars across container rebuilds
+      - uploads-data:/app/uploads
+
+  # OPTIONAL — only starts with `--profile db`
+  mysql:
+    image: mysql:8.4
+    profiles: ["db"]
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:-root}"
+      MYSQL_DATABASE: "${DB_DATABASE:-app}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mysql-data:
+  seed-marker:
+  uploads-data:
