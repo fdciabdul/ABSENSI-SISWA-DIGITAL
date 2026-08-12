@@ -4,7 +4,7 @@ import Class from '#models/class'
 import FingerprintDevice from '#models/fingerprint_device'
 import app from '@adonisjs/core/services/app'
 import fs from 'fs/promises'
-import XLSX from 'xlsx' // Ensure you have installed xlsx package
+import ExcelJS from 'exceljs'
 export default class StudentsController {
     async index({ view, request }: HttpContext) {
         const page = request.input('page', 1)
@@ -197,7 +197,7 @@ async show({ params, view }: HttpContext) {
         if (!file) {
             return response.json({ success: false, message: 'File tidak ditemukan' })
         }
-        const uploadDir = app.makePath('public/uploads/template')
+        const uploadDir = app.makePath('tmp')
         
         try {
             await fs.access(uploadDir)
@@ -208,16 +208,41 @@ async show({ params, view }: HttpContext) {
         // Move file to temp location
         await file.move(uploadDir)
 
-        // Read Excel file (you'll need to install xlsx package)
-        // npm install xlsx @types/xlsx
+        // Read Excel file with exceljs
      
         if (!file.filePath) {
             return response.json({ success: false, message: 'File path tidak ditemukan' })
         }
-        const workbook = XLSX.readFile(file.filePath)
-        const sheetName = workbook.SheetNames[0]
-        const worksheet = workbook.Sheets[sheetName]
-        const data = XLSX.utils.sheet_to_json(worksheet)
+        const workbook = new ExcelJS.Workbook()
+        await workbook.xlsx.readFile(file.filePath)
+        const worksheet = workbook.worksheets[0]
+
+        // Map header columns from the first row
+        const headers: Record<number, string> = {}
+        worksheet.getRow(1).eachCell((cell, colNumber) => {
+            headers[colNumber] = cell.text.trim()
+        })
+
+        const data: {
+            NIS?: string
+            ['Nama Lengkap']?: string
+            Email?: string
+            Telepon?: string
+            Kelas?: string
+            Tingkat?: string | number
+        }[] = []
+
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return
+            const rowData: Record<string, string> = {}
+            row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                const header = headers[colNumber]
+                if (header) {
+                    rowData[header] = cell.text.trim()
+                }
+            })
+            data.push(rowData)
+        })
 
         let imported = 0
         let errors = []
@@ -342,31 +367,25 @@ async downloadTemplate({ response }: HttpContext) {
         ]
 
         // Create workbook
-        const workbook = XLSX.utils.book_new()
+        const workbook = new ExcelJS.Workbook()
         
         // Add template sheet
-        const templateSheet = XLSX.utils.aoa_to_sheet(templateData)
-        XLSX.utils.book_append_sheet(workbook, templateSheet, 'Template Data Siswa')
+        const templateSheet = workbook.addWorksheet('Template Data Siswa')
+        templateData.forEach((row) => templateSheet.addRow(row))
         
         // Add instructions sheet
-        const instructionsSheet = XLSX.utils.aoa_to_sheet(instructionsData)
-        XLSX.utils.book_append_sheet(workbook, instructionsSheet, 'Petunjuk Penggunaan')
+        const instructionsSheet = workbook.addWorksheet('Petunjuk Penggunaan')
+        instructionsData.forEach((row) => instructionsSheet.addRow(row))
         
-        // Style the template sheet
-        const range = XLSX.utils.decode_range(templateSheet['!ref'] ?? 'A1:A1')
-        for (let col = range.s.c; col <= range.e.c; col++) {
-            const headerCell = XLSX.utils.encode_cell({r: 0, c: col})
-            if (templateSheet[headerCell]) {
-                templateSheet[headerCell].s = {
-                    font: { bold: true },
-                    fill: { fgColor: { rgb: "366092" } },
-                    alignment: { horizontal: "center" }
-                }
-            }
-        }
+        // Style the header row of the template sheet
+        templateSheet.getRow(1).eachCell((cell) => {
+            cell.font = { bold: true }
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF366092' } }
+            cell.alignment = { horizontal: 'center' }
+        })
         
         // Set column widths
-        templateSheet['!cols'] = [
+        templateSheet.columns = [
             { width: 15 }, // NIS
             { width: 25 }, // Nama
             { width: 30 }, // Email
@@ -376,7 +395,7 @@ async downloadTemplate({ response }: HttpContext) {
         ]
         
         // Generate file
-        const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+        const buffer = await workbook.xlsx.writeBuffer()
         
         response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response.header('Content-Disposition', 'attachment; filename="template-data-siswa.xlsx"')

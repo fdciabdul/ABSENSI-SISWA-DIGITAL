@@ -5,7 +5,7 @@ import Fingerprint from '#models/fingerprint'
 import FaceData from '#models/face_data'
 import Class from '#models/class'
 import { DateTime } from 'luxon'
-import XLSX  from 'xlsx';
+import ExcelJS from 'exceljs'
 export default class StudentHistoryController {
     async attendance({ params, view, request }: HttpContext) {
         const student = await Student.query()
@@ -372,14 +372,14 @@ async export({ params, request, response }: HttpContext) {
 
     
     // Create workbook and worksheet
-    const wb = XLSX.utils.book_new()
-    const ws = XLSX.utils.json_to_sheet(data)
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Data')
-    
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet('Data')
+
+    ws.columns = Object.keys(data[0]).map((key) => ({ header: key, key }))
+    ws.addRows(data)
+
     // Generate buffer
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+    const buffer = Buffer.from(await wb.xlsx.writeBuffer())
     
     // Set headers for file download
     response.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
