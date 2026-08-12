@@ -1,9 +1,5 @@
-# Default: `docker compose up -d` starts ONLY the app and connects to the
-# database configured via .env (DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_DATABASE).
-#
-# Optional local database container (off by default, so it never burdens the
-# server unless you ask for it):
-#   docker compose --profile db up -d
+# App only. The database is EXTERNAL — configure it via env vars
+# (DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_DATABASE) in your panel or .env.
 
 services:
   app:
@@ -18,7 +14,7 @@ services:
       APP_KEY: "${APP_KEY:?Set APP_KEY in .env (generate with 'node ace generate:key')}"
       NODE_ENV: "production"
       SESSION_DRIVER: "cookie"
-      DB_HOST: "${DB_HOST:?Set DB_HOST in .env (your external DB host, or 'mysql' with --profile db)}"
+      DB_HOST: "${DB_HOST:?Set DB_HOST in .env}"
       DB_PORT: "${DB_PORT:-3306}"
       DB_USER: "${DB_USER:?Set DB_USER in .env}"
       DB_PASSWORD: "${DB_PASSWORD:?Set DB_PASSWORD in .env}"
@@ -35,23 +31,6 @@ services:
       # Persist uploaded avatars across container rebuilds
       - uploads-data:/app/uploads
 
-  # OPTIONAL — only starts with `--profile db`
-  mysql:
-    image: mysql:8.4
-    profiles: ["db"]
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: "${DB_PASSWORD:-root}"
-      MYSQL_DATABASE: "${DB_DATABASE:-app}"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p$${MYSQL_ROOT_PASSWORD}"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
 volumes:
-  mysql-data:
   seed-marker:
   uploads-data:

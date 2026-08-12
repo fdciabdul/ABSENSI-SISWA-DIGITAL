@@ -1,8 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # Node LTS (bookworm-slim = glibc, so the `canvas` prebuilt binary works without build tools)
+# NOTE: NODE_ENV is intentionally NOT set here — it would make `npm ci`
+# skip devDependencies, which the build stage needs.
 FROM node:lts-bookworm-slim AS base
-ENV NODE_ENV=production
 WORKDIR /app
 
 # ---------------------------------------------------------------
@@ -32,6 +33,7 @@ RUN node ace build --ignore-ts-errors
 # Final image: prod node_modules + compiled build output
 # ---------------------------------------------------------------
 FROM base
+ENV NODE_ENV=production
 COPY --from=production-deps /app/node_modules ./node_modules
 COPY --from=build /app/build ./
 
