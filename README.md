@@ -6,7 +6,7 @@
 </div>
 
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)
+![Node.js](https://img.shields.io/badge/Node.js-20.6+-green.svg)
 ![AdonisJS](https://img.shields.io/badge/AdonisJS-6.x-blueviolet.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)
 
@@ -64,7 +64,7 @@
 
 ## Persyaratan Sistem
 
-- Node.js 18 atau lebih tinggi
+- Node.js 20.6 atau lebih tinggi
 - MySQL 8.0 atau lebih tinggi
 - NPM atau Yarn
 - Git
@@ -73,7 +73,7 @@
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/imtaqin/ABSENSI-SISWA-DIGITAL.git
+git clone https://github.com/fdciabdul/ABSENSI-SISWA-DIGITAL.git
 cd ABSENSI-SISWA-DIGITAL
 ```
 
@@ -110,6 +110,17 @@ npm run dev
 ```
 
 Akses aplikasi di: `http://localhost:3333`
+
+### 6. Face Recognition Client (Opsional)
+
+Klien Python untuk perangkat face recognition. Membutuhkan Python 3.10 atau lebih tinggi.
+
+```bash
+pip install -r face_recognition/requirements.txt
+python face_recognition/main.py
+```
+
+Pastikan environment variable `FACE_API_KEY` pada server sudah diset dan nilainya sama dengan API key yang dikirim klien melalui header `x-api-key` (diisi pada konfigurasi klien).
 
 ## Dokumentasi
 
@@ -176,7 +187,7 @@ Kontribusi sangat diterima! Silakan ikuti langkah berikut:
 
 ## Melaporkan Issues
 
-Jika menemukan bug atau memiliki saran, silakan buat [issue baru](https://github.com/imtaqin/ABSENSI-SISWA-DIGITAL/issues) dengan informasi:
+Jika menemukan bug atau memiliki saran, silakan buat [issue baru](https://github.com/fdciabdul/ABSENSI-SISWA-DIGITAL/issues) dengan informasi:
 - Deskripsi masalah yang jelas
 - Langkah reproduksi bug
 - Screenshot (jika ada)
@@ -209,7 +220,7 @@ Dukungan finansial membantu pengembangan berkelanjutan:
 
 **Made with dedication by Taqin**
 
-![GitHub stars](https://img.shields.io/github/stars/imtaqin/ABSENSI-SISWA-DIGITAL?style=social)
-![GitHub forks](https://img.shields.io/github/forks/imtaqin/ABSENSI-SISWA-DIGITAL?style=social)
+![GitHub stars](https://img.shields.io/github/stars/fdciabdul/ABSENSI-SISWA-DIGITAL?style=social)
+![GitHub forks](https://img.shields.io/github/forks/fdciabdul/ABSENSI-SISWA-DIGITAL?style=social)
 
 </div>
