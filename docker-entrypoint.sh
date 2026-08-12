@@ -22,14 +22,21 @@ setTimeout(() => process.exit(1), 3000)
   sleep 2
 done
 
-echo "==> Running database migrations..."
-node ace.js migration:run --force
+if [ "${DB_FRESH:-false}" = "true" ]; then
+  # DANGER: drops ALL tables, re-runs every migration, and re-seeds.
+  # Set DB_FRESH=true once to reset a broken/leftover database, then REMOVE it.
+  echo "==> DB_FRESH=true, dropping all tables and re-migrating from scratch..."
+  node ace.js migration:fresh --force
+else
+  echo "==> Running database migrations..."
+  node ace.js migration:run --force
+fi
 
-# Seed only on first boot. The marker lives on a named volume, so seeding
-# happens exactly once for the lifetime of that volume.
+# Seed only on first boot (or right after DB_FRESH). The marker lives on a
+# named volume, so seeding happens exactly once for the lifetime of that volume.
 SEED_MARKER=/app/data/.db_seeded
-if [ ! -f "$SEED_MARKER" ]; then
-  echo "==> First boot detected, seeding database..."
+if [ ! -f "$SEED_MARKER" ] || [ "${DB_FRESH:-false}" = "true" ]; then
+  echo "==> Seeding database..."
   node ace.js db:seed --files=database/seeders/main_seeder.js
   touch "$SEED_MARKER"
 else
